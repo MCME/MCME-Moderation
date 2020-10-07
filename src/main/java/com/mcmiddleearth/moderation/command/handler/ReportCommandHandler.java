@@ -30,8 +30,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 
-import java.util.logging.Logger;
-
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 
 /**
