@@ -20,7 +20,7 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mcmiddleearth.moderation.Permission;
-import com.mcmiddleearth.moderation.command.argument.PlayerArgument;
+import com.mcmiddleearth.moderation.command.argument.PlayerArgumentType;
 import com.mcmiddleearth.moderation.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mojang.brigadier.CommandDispatcher;
@@ -45,7 +45,7 @@ public class ReportCommandHandler extends AbstractCommandHandler {
                 .withHelpText("Report inappropriate behaviour.")
                 .withTooltip("Send a report to Moderators about inappropriate player behaviour.")
                 .requires(commandSender -> commandSender.hasPermission(Permission.SEND_REPORT))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new PlayerArgument())
+                .then(HelpfulRequiredArgumentBuilder.argument("player", new PlayerArgumentType())
                     .withTooltip("Name of the player who misbehaved.")
                     .then(HelpfulRequiredArgumentBuilder.argument("reason", greedyString())
                         .withTooltip("Reason of your report. Quickly explain the misbehaviour.")

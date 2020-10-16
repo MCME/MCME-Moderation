@@ -1,6 +1,6 @@
 package com.mcmiddleearth.moderation.command.node;
 
-import com.mcmiddleearth.moderation.command.argument.HelpfulArgument;
+import com.mcmiddleearth.moderation.command.argument.HelpfulArgumentType;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.RedirectModifier;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -16,12 +16,12 @@ import net.md_5.bungee.api.CommandSender;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class HelpfulArgumentNode extends ArgumentCommandNode<CommandSender, String> implements HelpfulNode {
+public class HelpfulArgumentNode<T> extends ArgumentCommandNode<CommandSender, T> implements HelpfulNode {
 
     private String helpText;
     private final String tooltip;
 
-    public HelpfulArgumentNode(String name, ArgumentType<String> type, Command<CommandSender> command, Predicate<CommandSender> requirement,
+    public HelpfulArgumentNode(String name, ArgumentType<T> type, Command<CommandSender> command, Predicate<CommandSender> requirement,
                                CommandNode<CommandSender> redirect, RedirectModifier<CommandSender> modifier, boolean forks,
                                SuggestionProvider<CommandSender> customSuggestions, String helpText, String tooltip) {
         super(name, type, command, requirement, redirect, modifier, forks, customSuggestions);
@@ -48,8 +48,8 @@ public class HelpfulArgumentNode extends ArgumentCommandNode<CommandSender, Stri
     public CompletableFuture<Suggestions> listSuggestions(final CommandContext<CommandSender> context, final SuggestionsBuilder builder) throws CommandSyntaxException {
         if(canUse(context.getSource())) {
             if (getCustomSuggestions() == null) {
-                if (getType() instanceof HelpfulArgument) {
-                    return ((HelpfulArgument) getType()).listSuggestions(context, builder, tooltip);
+                if (getType() instanceof HelpfulArgumentType) {
+                    return ((HelpfulArgumentType) getType()).listSuggestions(context, builder, tooltip);
                 } else {
                     return getType().listSuggestions(context, builder);
                 }

@@ -54,7 +54,7 @@ public class ModerationPlugin extends Plugin implements Listener {
     private final CommandDispatcher<CommandSender> commandDispatcher = new CommandDispatcher<>();
     private final Set<ModerationPluginCommand> commands = new HashSet<>();
 
-    private WatchlistManager watchlistManager;
+    private static WatchlistManager watchlistManager;
 
     @Override
     public void onEnable() {
@@ -127,7 +127,7 @@ public class ModerationPlugin extends Plugin implements Listener {
         return config;
     }
 
-    public WatchlistManager getWatchlistManager() {
+    public static WatchlistManager getWatchlistManager() {
         return watchlistManager;
     }
 }

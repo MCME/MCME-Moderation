@@ -16,6 +16,7 @@
  */
 package com.mcmiddleearth.moderation.command.argument;
 
+import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -29,19 +30,18 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * @author Eriol_Eandur
  */
 
-public class PlayerArgument implements HelpfulArgument {
+public class PlayerArgumentType implements ArgumentType<String>,  HelpfulArgumentType {
 
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
-        String o = reader.readString();
-        if (ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet()).contains(o)) {
+        String o = reader.readUnquotedString();
+        if (ModerationPlugin.getWatchlistManager().isKnown(o)) {//.stream().map(ProxiedPlayer::getName).collect(Collectors.toSet()).contains(o)) {
             return o;
         }
         throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of PlayerArgument")),
