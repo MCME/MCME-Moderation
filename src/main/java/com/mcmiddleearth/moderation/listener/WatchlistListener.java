@@ -32,8 +32,12 @@ public class WatchlistListener implements Listener {
     public void playerJoin(ServerConnectEvent event) {
         if(event.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
 
+            ModerationPlugin.getWatchlistManager().addKnownPlayer(event.getPlayer());
+
             //handle name changes of players
             ModerationPlugin.getWatchlistManager().updateWatchlist(event.getPlayer());
+
+
 
             //TODO: Send notification to moderators
         }

@@ -22,13 +22,14 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -36,39 +37,38 @@ import java.util.stream.Collectors;
  * @author Eriol_Eandur
  */
 
-public class PlayerArgumentType implements ArgumentType<String>,  HelpfulArgumentType {
+public abstract class AbstractPlayerArgumentType implements ArgumentType<String>,  HelpfulArgumentType {
+
+    private String tooltip;
 
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
-        String o = reader.readUnquotedString();
-        if (ModerationPlugin.getWatchlistManager().isKnown(o)) {//.stream().map(ProxiedPlayer::getName).collect(Collectors.toSet()).contains(o)) {
-            return o;
-        }
-        throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of PlayerArgument")),
-                                         new LiteralMessage(String.format("Player not found: %s",o)));
+        return reader.readUnquotedString();
     }
 
     @Override
     public Collection<String> getExamples() {
-        return ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet());
+        return Collections.singletonList("any_player_name");
     }
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        for (String option : ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet())) {
+        for (String option : getPlayerSuggestions()) {
             if (option.toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
-                builder.suggest(option);
+                if(tooltip == null) {
+                    builder.suggest(option);
+                } else {
+                    builder.suggest(option, new LiteralMessage(tooltip));
+                }
             }
         }
         return builder.buildFuture();
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder, String tooltip) {
-        for (String option : ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet())) {
-            if (option.toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
-                builder.suggest(option, new LiteralMessage(tooltip));
-            }
-        }
-        return builder.buildFuture();
+    protected abstract Collection<String> getPlayerSuggestions();
+
+    @Override
+    public void setTooltip(String tooltip) {
+        this.tooltip = tooltip;
     }
 }

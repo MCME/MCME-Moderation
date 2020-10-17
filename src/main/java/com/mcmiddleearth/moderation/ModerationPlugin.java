@@ -20,6 +20,7 @@ import com.mcmiddleearth.moderation.command.ModerationPluginCommand;
 import com.mcmiddleearth.moderation.command.handler.ReportCommandHandler;
 import com.mcmiddleearth.moderation.command.handler.WatchlistCommandHandler;
 import com.mcmiddleearth.moderation.configuration.ModerationConfig;
+import com.mcmiddleearth.moderation.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
 import net.md_5.bungee.api.CommandSender;
@@ -73,6 +74,7 @@ public class ModerationPlugin extends Plugin implements Listener {
 
         //Listener for tab complete
         ProxyServer.getInstance().getPluginManager().registerListener(this,this);
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new WatchlistListener());
         watchlistManager = new WatchlistManager();
     }
 

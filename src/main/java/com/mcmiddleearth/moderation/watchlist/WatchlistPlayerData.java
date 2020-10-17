@@ -18,6 +18,7 @@ package com.mcmiddleearth.moderation.watchlist;
 
 import java.text.ParseException;
 import java.util.*;
+import java.util.logging.Logger;
 
 /**
  * @author Eriol_Eandur
@@ -64,6 +65,7 @@ public class WatchlistPlayerData {
     }
 
     public void setUuid(UUID uuid) {
+Logger.getGlobal().info("unknown "+this.uuid.equals(unknownUuid));
         if (this.uuid.equals(unknownUuid) && uuid != null) {
             this.uuid = uuid;
         }

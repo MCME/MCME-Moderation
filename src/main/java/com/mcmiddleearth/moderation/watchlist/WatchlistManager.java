@@ -24,6 +24,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.File;
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -49,9 +50,9 @@ public class WatchlistManager {
         }
     }
 
-    public WatchlistPlayerData getPlayerData(String name) {
+    /*public WatchlistPlayerData getPlayerData(String name) {
         return watchlist.get(name);
-    }
+    }*/
 
     /**
      * This method is required for TabList feature in MCME-Connect plugin
@@ -59,7 +60,7 @@ public class WatchlistManager {
      * @return if player is on watchlist
      */
     public boolean isOnWatchlist(String name) {
-        return false; //TODO
+        return watchlist.keySet().stream().anyMatch(key -> key.equalsIgnoreCase(name));
     }
 
     /**
@@ -80,16 +81,18 @@ public class WatchlistManager {
     }
 
     public void updateWatchlist(ProxiedPlayer player) {
-        WatchlistPlayerData nameMatch = watchlist.get(player.getName());
+        WatchlistPlayerData nameMatch = getWatchlistData(player.getName());
+        if(nameMatch!=null) {
 
-        // Set uuid for watchlist entries that were made without the player being online
-        if(nameMatch.isUuidUnknown()) {
-            nameMatch.setUuid(player.getUniqueId());
+            // Set uuid for watchlist entries that were made without the player being online
+            if (nameMatch.isUuidUnknown()) {
+                nameMatch.setUuid(player.getUniqueId());
 
-        // Set name to 'unknown##' for watchlist entries when a player with same name but other uuid joins
-        } else if(!nameMatch.getUuid().equals(player.getUniqueId())) {
-            watchlist.remove(player.getName());
-            putWithUnknownName(nameMatch);
+                // Set name to 'unknown##' for watchlist entries when a player with same name but other uuid joins
+            } else if (!nameMatch.getUuid().equals(player.getUniqueId())) {
+                watchlist.remove(player.getName());
+                putWithUnknownName(nameMatch);
+            }
         }
 
         //get a list of watchlist entries with same uuid as joining player
@@ -100,7 +103,7 @@ public class WatchlistManager {
             Map.Entry<String,WatchlistPlayerData> firstMatch = uuidMatches.get(0);
 
             // Set name for watchlist entry after player changed minecraft username
-            if(!firstMatch.getKey().equals(player.getName())) {
+            if(!firstMatch.getKey().equalsIgnoreCase(player.getName())) {
                 watchlist.remove(firstMatch.getKey());
                 watchlist.put(player.getName(),firstMatch.getValue());
             }
@@ -126,16 +129,29 @@ public class WatchlistManager {
         return watchlist;
     }
 
+    public WatchlistPlayerData getWatchlistData(String player) {
+        return watchlist.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(player))
+                                            .map(Map.Entry::getValue).findFirst().orElse(null);
+    }
+
     public void addKnownPlayer(ProxiedPlayer player) {
         knownPlayers.put(player.getName(),player.getUniqueId());
+for(String name: knownPlayers.keySet()) {
+    Logger.getGlobal().info("Known: "+name+" "+knownPlayers.get(name));
+}
     }
 
     public boolean isKnown(String name) {
-        return knownPlayers.get(name) != null;
+        return knownPlayers.keySet().stream().anyMatch(key -> key.equalsIgnoreCase(name));
+    }
+
+    public Map<String, UUID> getKnownPlayers() {
+        return knownPlayers;
     }
 
     public UUID getUUID(String name) {
-        return knownPlayers.get(name);
+        return knownPlayers.entrySet().stream().filter(entry -> entry.getKey().equalsIgnoreCase(name))
+                                               .map(Map.Entry::getValue).findFirst().orElse(null);
     }
 
     public void addWatchlist(String addPlayer, CommandSender commandSender, String reason) {
@@ -145,7 +161,11 @@ public class WatchlistManager {
         if(data != null) {
             data.addReason(watchlistReason);
         } else {
-            watchlist.put(addPlayer,new WatchlistPlayerData(getUUID(addPlayer),watchlistReason));
+            UUID uuid = getUUID(addPlayer);
+Logger.getGlobal().info("uuid "+uuid+" for "+addPlayer);
+            data = new WatchlistPlayerData(uuid,watchlistReason);
+Logger.getGlobal().info("add "+addPlayer+" "+data.getUuid());
+            watchlist.put(addPlayer,data);
         }
     }
 

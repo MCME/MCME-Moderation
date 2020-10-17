@@ -42,12 +42,15 @@ public class ModerationPluginCommand extends Command {
         try {
             String message = String.format("%s %s", getName(), Joiner.on(' ').join(args)).trim();
             ParseResults<CommandSender> result = commandDispatcher.parse(message, sender);
-            Logger.getGlobal().info("Parsed");
+//Logger.getGlobal().info("nodes "+result.getContext().getNodes().size());
+//Logger.getGlobal().info("Parsed");
             result.getExceptions().entrySet().stream()
                     .findFirst().ifPresent(error -> sender.sendMessage(new ComponentBuilder(error.getValue().getMessage())
                     .color(ChatColor.RED).create()));
             if(result.getExceptions().isEmpty()) {
-                if(result.getContext().getCommand()==null || result.getContext().getRange().getEnd() < result.getReader().getString().length()) {
+                if(result.getContext().getNodes().size() > 0
+                        && (result.getContext().getCommand()==null
+                            || result.getContext().getRange().getEnd() < result.getReader().getString().length())) {
                     //check for possible child nodes to collect suggestions and bake better error message
                     ComponentBuilder helpMessage;
                     boolean help = false;

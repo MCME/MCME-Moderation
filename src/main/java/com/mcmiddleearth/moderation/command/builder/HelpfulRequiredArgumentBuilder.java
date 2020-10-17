@@ -1,5 +1,6 @@
 package com.mcmiddleearth.moderation.command.builder;
 
+import com.mcmiddleearth.moderation.command.argument.HelpfulArgumentType;
 import com.mcmiddleearth.moderation.command.node.HelpfulArgumentNode;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -55,6 +56,9 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
      */
     public HelpfulRequiredArgumentBuilder<T> withTooltip(String tooltip) {
         this.tooltip = tooltip;
+        if(type instanceof HelpfulArgumentType) {
+            ((HelpfulArgumentType)type).setTooltip(tooltip);
+        }
         return getThis();
     }
 
@@ -76,7 +80,7 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
     }
 
     public ArgumentCommandNode<CommandSender, T> build() {
-        final ArgumentCommandNode<CommandSender, T> result = new HelpfulArgumentNode(getName(), getType(), getCommand(),
+        final ArgumentCommandNode<CommandSender, T> result = new HelpfulArgumentNode<>(getName(), getType(), getCommand(),
                                                                     getRequirement(), getRedirect(), getRedirectModifier(),
                                                                     isFork(), getSuggestionsProvider(), helpText, tooltip);
 

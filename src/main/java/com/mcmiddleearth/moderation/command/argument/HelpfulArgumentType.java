@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface HelpfulArgumentType {
 
-    <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder, String tooltip);
+    //<S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder, String tooltip);
+    public void setTooltip(String tooltip);
 
 }

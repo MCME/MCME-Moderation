@@ -20,7 +20,8 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mcmiddleearth.moderation.Permission;
-import com.mcmiddleearth.moderation.command.argument.PlayerArgumentType;
+import com.mcmiddleearth.moderation.command.argument.OfflinePlayerArgumentType;
+import com.mcmiddleearth.moderation.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mojang.brigadier.CommandDispatcher;
@@ -29,8 +30,6 @@ import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-
-import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 
 /**
  * @author Eriol_Eandur
@@ -45,15 +44,16 @@ public class ReportCommandHandler extends AbstractCommandHandler {
                 .withHelpText("Report inappropriate behaviour.")
                 .withTooltip("Send a report to Moderators about inappropriate player behaviour.")
                 .requires(commandSender -> commandSender.hasPermission(Permission.SEND_REPORT))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new PlayerArgumentType())
+
+                .then(HelpfulRequiredArgumentBuilder.argument("player", new OfflinePlayerArgumentType())
                     .withTooltip("Name of the player who misbehaved.")
-                    .then(HelpfulRequiredArgumentBuilder.argument("reason", greedyString())
+
+                    .then(HelpfulRequiredArgumentBuilder.argument("reason", new ReasonArgumentType())
                         .withTooltip("Reason of your report. Quickly explain the misbehaviour.")
-                        .suggests((context,suggestionsBuilder) ->
-                            suggestionsBuilder.suggest("Explain the inappropriate behaviour of "+context.getArgument("player",String.class)).buildFuture())
+                        //.suggests((context,suggestionsBuilder) ->
+                        //    suggestionsBuilder.suggest("Explain the inappropriate behaviour of "+context.getArgument("player",String.class)).buildFuture())
                         .executes(context -> sendReport(context.getSource(), context.getArgument("player",String.class),
-                                                        context.getArgument("reason", String.class)))))
-        );
+                                                        context.getArgument("reason", String.class))))));
     }
 
     private int sendReport(CommandSender commandSender, String player, String reason) {

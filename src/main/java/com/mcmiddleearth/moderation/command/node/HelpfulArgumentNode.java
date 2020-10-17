@@ -48,11 +48,11 @@ public class HelpfulArgumentNode<T> extends ArgumentCommandNode<CommandSender, T
     public CompletableFuture<Suggestions> listSuggestions(final CommandContext<CommandSender> context, final SuggestionsBuilder builder) throws CommandSyntaxException {
         if(canUse(context.getSource())) {
             if (getCustomSuggestions() == null) {
-                if (getType() instanceof HelpfulArgumentType) {
+                /*if (getType() instanceof HelpfulArgumentType) {
                     return ((HelpfulArgumentType) getType()).listSuggestions(context, builder, tooltip);
-                } else {
+                } else {*/
                     return getType().listSuggestions(context, builder);
-                }
+                //}
             } else {
                 return getCustomSuggestions().getSuggestions(context, builder);
             }
