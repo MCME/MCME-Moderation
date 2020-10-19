@@ -21,8 +21,20 @@ permissions:
     default: op
     children:
       mcmemoderation.watchlist: true
+      mcmemoderation.watchlist.see: true
       mcmemoderation.watchlist.add: true
+      mcmemoderation.watchlist.remove: true
+  mcmemoderation.watchlist.see:
+    description: allows a player to add watchlist entries
+    default: op
+    children:
+      mcmemoderation.watchlist: true
   mcmemoderation.watchlist.add:
+    description: allows a player to add watchlist entries
+    default: op
+    children:
+      mcmemoderation.watchlist: true
+  mcmemoderation.watchlist.remove:
     description: allows a player to add watchlist entries
     default: op
     children:

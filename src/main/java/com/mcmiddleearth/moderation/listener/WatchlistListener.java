@@ -16,6 +16,8 @@
  */
 package com.mcmiddleearth.moderation.listener;
 
+import com.mcmiddleearth.moderation.ModerationPlugin;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -29,6 +31,14 @@ public class WatchlistListener implements Listener {
     @EventHandler
     public void playerJoin(ServerConnectEvent event) {
         if(event.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
+
+            ModerationPlugin.getWatchlistManager().addKnownPlayer(event.getPlayer());
+
+            //handle name changes of players
+            ModerationPlugin.getWatchlistManager().updateWatchlist(event.getPlayer());
+
+
+
             //TODO: Send notification to moderators
         }
     }

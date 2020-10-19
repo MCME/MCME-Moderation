@@ -20,10 +20,13 @@ import com.mcmiddleearth.moderation.command.ModerationPluginCommand;
 import com.mcmiddleearth.moderation.command.handler.ReportCommandHandler;
 import com.mcmiddleearth.moderation.command.handler.WatchlistCommandHandler;
 import com.mcmiddleearth.moderation.configuration.ModerationConfig;
+import com.mcmiddleearth.moderation.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -54,7 +57,7 @@ public class ModerationPlugin extends Plugin implements Listener {
     private final CommandDispatcher<CommandSender> commandDispatcher = new CommandDispatcher<>();
     private final Set<ModerationPluginCommand> commands = new HashSet<>();
 
-    private WatchlistManager watchlistManager;
+    private static WatchlistManager watchlistManager;
 
     @Override
     public void onEnable() {
@@ -73,6 +76,7 @@ public class ModerationPlugin extends Plugin implements Listener {
 
         //Listener for tab complete
         ProxyServer.getInstance().getPluginManager().registerListener(this,this);
+        ProxyServer.getInstance().getPluginManager().registerListener(this, new WatchlistListener());
         watchlistManager = new WatchlistManager();
     }
 
@@ -119,6 +123,18 @@ public class ModerationPlugin extends Plugin implements Listener {
         }
     }
 
+    public static void sendInfo(CommandSender recipient, ComponentBuilder message) {
+        ComponentBuilder result = new ComponentBuilder("[Mod]").color(Style.MOD).append(" ").color(Style.INFO);
+        result.append(message.create());
+        recipient.sendMessage(result.create());
+    }
+    public static void sendError(CommandSender recipient, ComponentBuilder message) {
+        ComponentBuilder result = new ComponentBuilder("[Mod]").color(Style.MOD).append(" ").color(Style.ERROR);
+        result.append(message.create());
+        recipient.sendMessage(result.create());
+    }
+
+
     public static ModerationPlugin getInstance() {
         return instance;
     }
@@ -127,7 +143,7 @@ public class ModerationPlugin extends Plugin implements Listener {
         return config;
     }
 
-    public WatchlistManager getWatchlistManager() {
+    public static WatchlistManager getWatchlistManager() {
         return watchlistManager;
     }
 }
