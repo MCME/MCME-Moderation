@@ -19,12 +19,14 @@ package com.mcmiddleearth.moderation.command.handler;
 
 import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mcmiddleearth.moderation.Permission;
+import com.mcmiddleearth.moderation.Style;
 import com.mcmiddleearth.moderation.command.argument.KnownPlayerArgumentType;
 import com.mcmiddleearth.moderation.command.argument.OfflinePlayerArgumentType;
 import com.mcmiddleearth.moderation.command.argument.PageArgumentType;
 import com.mcmiddleearth.moderation.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.command.builder.HelpfulRequiredArgumentBuilder;
+import com.mcmiddleearth.moderation.util.DiscordUtil;
 import com.mcmiddleearth.moderation.watchlist.WatchlistPlayerData;
 import com.mcmiddleearth.moderation.watchlist.WatchlistReason;
 import com.mojang.brigadier.CommandDispatcher;
@@ -35,11 +37,14 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
+import org.bukkit.plugin.PluginLogger;
 
 import java.text.DateFormat;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
@@ -61,12 +66,12 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
 
                 .then(HelpfulRequiredArgumentBuilder.argument("player", new KnownPlayerArgumentType())
                     .withHelpText("Watchlist details about a player.")
-                    .withTooltip("Returns details of which Mod added this player to the watchlist, the date he was added, and the reason.")
+                    .withTooltip("Name of player to see details about.")
                     .requires(commandSender -> commandSender.hasPermission(Permission.SEE_WATCHLIST))
                     .executes(context -> viewDetails(context.getSource(), context.getArgument("player",String.class))))
 
                 .then(HelpfulLiteralBuilder.literal("list")
-                    .withHelpText("List players on watchlist")
+                    .withHelpText("See players on watchlist")
                     .withTooltip("Get a list of all or a group of players on the watchlist")
                     .requires(commandSender -> commandSender.hasPermission(Permission.SEE_WATCHLIST))
                     .executes(context -> viewList(context.getSource(), "all", 1))
@@ -77,11 +82,11 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                             .executes(context -> viewList(context.getSource(), "all", context.getArgument("page", Integer.class))))
 
                     .then(HelpfulRequiredArgumentBuilder.argument("selection", word())
-                        .withHelpText("Selection of player to display")
                         .withTooltip("Possible groups are 'all', 'online' or any string player names will be matched with.")
                         .suggests((context,suggestionsBuilder) ->
-                                suggestionsBuilder.suggest("Possible groups are 'all', 'online' or any string player names will be matched with.").buildFuture())
+                                suggestionsBuilder.suggest("all").suggest("online").suggest("<selection>").buildFuture())
                         .executes(context -> viewList(context.getSource(), context.getArgument("selection", String.class), 1))
+
                         .then(HelpfulRequiredArgumentBuilder.argument(("page"),
                                          new PageArgumentType(context -> getWatchlistSelection((String) context.getArgument("selection",String.class))
                                                                                             .stream().map(Map.Entry::getKey).collect(Collectors.toList())))
@@ -113,17 +118,18 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     private int viewDetails(CommandSender commandSender, String showPlayer) {
         WatchlistPlayerData data = ModerationPlugin.getWatchlistManager().getWatchlistData(showPlayer);
         if(data != null) {
-            StringBuilder message = new StringBuilder(ChatColor.GOLD+"Watchlist reasons for " + ChatColor.YELLOW + showPlayer + ChatColor.GOLD+":");
+            StringBuilder message = new StringBuilder("Watchlist reasons for " + Style.INFO_STRESSED + showPlayer + Style.INFO+":");
             for(WatchlistReason reason: data.getReasons()) {
-                message.append("\n").append(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US).format(reason.getCreationTime()))
-                       .append(" (").append(reason.isByModerator() ? ChatColor.GOLD : ChatColor.GRAY).append(reason.getInitiator())
-                       .append(ChatColor.YELLOW).append(") ").append(reason.getDescription());
+                message.append("\n" + Style.INFO_LIGHT + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US).format(reason.getCreationTime()))
+                       .append(Style.INFO + " (" + (reason.isByModerator() ? Style.MOD : Style.UNCONFIRMED) + "by "+reason.getInitiator())
+                       .append(Style.INFO + ") " + reason.getDescription());
+                if (!reason.getNameAtCreationTime().equals(showPlayer)) {
+                    message.append(Style.WARNING+" (player name at time of report: "+reason.getNameAtCreationTime()+")");
+                }
             }
-            commandSender.sendMessage(new ComponentBuilder(message.toString())
-                    .color(ChatColor.YELLOW).create());
+            ModerationPlugin.sendInfo(commandSender,new ComponentBuilder(message.toString()));
         } else {
-            commandSender.sendMessage(new ComponentBuilder("Player not on watchlist!")
-                    .color(ChatColor.RED).create());
+            ModerationPlugin.sendError(commandSender,new ComponentBuilder("Player not on watchlist!"));
         }
         return 0;
     }
@@ -132,34 +138,55 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         List<Map.Entry<String,WatchlistPlayerData>> displayList = getWatchlistSelection(group);
         String message;
         if(group.equals("all")) {
-            message = "All players on watchlist";
+            message = ""+Style.INFO_STRESSED+ChatColor.BOLD+"All "+Style.INFO+"players on watchlist";
         } else {
             if(group.equals("online")) {
-                message = "Online players on watchlist";
+                message = ""+Style.INFO_STRESSED+ChatColor.BOLD+"Online "+Style.INFO+"players on watchlist";
             } else {
-                message = "Players on watchlist matching '"+group+"'";
+                message = "Players on watchlist matching '"+Style.INFO_STRESSED+ChatColor.BOLD+group+Style.INFO+"'";
             }
         }
-        message = message +  " (page "+page+" of "+(displayList.size()/10+1)+")";
-        ComponentBuilder builder = new ComponentBuilder(message).color(ChatColor.GOLD);
+        //message = message +  " (page "+Style.INFO_STRESSED+page+Style.INFO+" of "+(displayList.size()/10+1)+")";
+        int maxPage = displayList.size()/10 +1;
+        if((page) > maxPage) {
+            page = maxPage;
+        }
+        ComponentBuilder builder = new ComponentBuilder(message).append(" (page ");
+        if(page > 1) {
+            builder.append("<").color(Style.INFO_STRESSED).bold(true)
+                   .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/watchlist list " + (page -1)))
+                   .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("Click for previous page.")
+                            .color(Style.TOOLTIP).create())));
+        }
+        builder.append(""+page).color(Style.INFO).bold(false);
+        if(page < maxPage) {
+            builder.append(">").color(Style.INFO_STRESSED).bold(true)
+                    .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/watchlist list " + (page + 1)))
+                    .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("Click for next page.")
+                            .color(Style.TOOLTIP).create())));
+        }
+        builder.append(" of "+maxPage+")").color(Style.INFO).bold(false);
         if(displayList.size()>0) {
-            for (int i = displayList.size() / 10; i < Math.min(displayList.size() / 10 + 10, displayList.size()); i++) {
-                boolean unconfirmed = displayList.get(i).getValue().isUuidUnknown();
+//Logger.getGlobal().info("all: "+ModerationPlugin.getWatchlistManager().getWatchlist().size()+" Size: "+displayList.size());
+            for (int i = (page-1) * 10; i < Math.min((page-1) * 10 + 10, displayList.size()); i++) {
+//Logger.getGlobal().info("Count: "+i);
                 String name = displayList.get(i).getKey();
-                ChatColor color = ChatColor.GOLD;
-                if (unconfirmed) {
-                    name = name + "(unconfirmed)";
-                    color = ChatColor.GRAY;
+                ChatColor color = Style.MOD;
+                if (displayList.get(i).getValue().isUuidUnknown()) {
+                    name = name + " (unconfirmed)";
+                    color = Style.UNCONFIRMED;
+                } else if(displayList.get(i).getValue().isNameUnknown()) {
+                    color = Style.WARNING;
                 }
-                builder.append("\n[" + i + "] ").color(ChatColor.YELLOW)
+                builder.append("\n[" + (i+1) + "] ").color(Style.INFO)
                         .append(name).color(color).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/watchlist " + displayList.get(i).getKey()))
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("Click for details.")
-                                .color(ChatColor.YELLOW).create())));
+                                .color(Style.TOOLTIP).create())));
             }
         } else {
-            builder.append("- no Players - ").color(ChatColor.YELLOW);
+            builder.append("\n- no Players - ").color(Style.INFO);
         }
-        commandSender.sendMessage(builder.create());
+        ModerationPlugin.sendInfo(commandSender,builder);
         return 0;
     }
 
@@ -167,14 +194,14 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         Map<String,WatchlistPlayerData> watchlist = ModerationPlugin.getWatchlistManager().getWatchlist();
         List<Map.Entry<String,WatchlistPlayerData>> selectionList;
         if(selection.equals("all")) {
-            selectionList = watchlist.entrySet().stream().sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
+            selectionList = watchlist.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
         } else {
             if(selection.equals("online")) {
                 selectionList = watchlist.entrySet().stream().filter(entry -> ProxyServer.getInstance().getPlayer(entry.getKey())!=null)
-                        .sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
+                        .sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
             } else {
                 selectionList = watchlist.entrySet().stream().filter(entry -> entry.getKey().toLowerCase().contains(selection.toLowerCase()))
-                        .sorted(Map.Entry.comparingByKey()).collect(Collectors.toList());
+                        .sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
             }
         }
         return selectionList;
@@ -182,25 +209,25 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
 
     private int addPlayer(CommandSender commandSender, String addPlayer, String reason) {
         ModerationPlugin.getWatchlistManager().addWatchlist(addPlayer, commandSender, reason);
-        commandSender.sendMessage(new ComponentBuilder("Added "+addPlayer+" to watchlist for '"+reason+"'")
-                .color(ChatColor.GOLD).create());
+        ModerationPlugin.sendInfo(commandSender,new ComponentBuilder("Added "+Style.INFO_STRESSED+addPlayer
+                                                                     +Style.INFO+" to watchlist for '"+reason+"'"));
+        ComponentBuilder message = new ComponentBuilder(commandSender.getName()+" added "+Style.INFO_STRESSED+addPlayer
+                                                                     +Style.INFO+" to watchlist for '"+reason+"'");
+        if(ModerationPlugin.getConfig().isReportSendIngame()) {
+            ProxyServer.getInstance().getPlayers().stream()
+                    .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT) && !moderator.equals(commandSender))
+                    .forEach(moderator -> ModerationPlugin.sendInfo(moderator,message));
+        }
+        if(ModerationPlugin.getConfig().isReportSendDiscord()) {
+            DiscordUtil.sendDiscord("**"+commandSender.getName()+"** reported player **"+addPlayer+".**\nReason: **"+reason+"**");
+        }
         return 0;
     }
 
     private int removePlayer(CommandSender commandSender, String removePlayer) {
         ModerationPlugin.getWatchlistManager().removeWatchlist(removePlayer);
-        commandSender.sendMessage(new ComponentBuilder("Removed "+removePlayer+" from watchlist.")
-                .color(ChatColor.GOLD).create());
+        ModerationPlugin.sendInfo(commandSender,new ComponentBuilder("Removed "+Style.INFO_STRESSED+removePlayer+Style.INFO+" from watchlist."));
         return 0;
     }
-
-    /*private ProxiedPlayer getPlayer(CommandSender commandSender, String playerName) {
-        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerName);
-        if(player == null) {
-            commandSender.sendMessage(new ComponentBuilder("*****Player not found!***should never get displayed**********")
-                    .color(ChatColor.RED).create());
-        }
-        return player;
-    }*/
 
 }

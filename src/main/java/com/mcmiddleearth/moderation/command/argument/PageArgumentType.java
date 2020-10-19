@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgumentType {
 
-    private String tooltip;
+    private String tooltip = "Number of page you want to see.";
 
     private final Function<CommandContext, Collection<String>> listProvider;
 
@@ -69,12 +69,13 @@ public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgument
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        for (String option : listProvider.apply(context)) {
-            if (option.toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
+        int maxPage = listProvider.apply(context).size() / 10 +1;
+        for (int i = 1; i <= maxPage; i++) {
+            if ((""+i).toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
                 if(tooltip == null) {
-                    builder.suggest(option);
+                    builder.suggest(""+i);
                 } else {
-                    builder.suggest(option, new LiteralMessage(tooltip));
+                    builder.suggest(""+i, new LiteralMessage(tooltip));
                 }
             }
         }
@@ -86,4 +87,8 @@ public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgument
         this.tooltip = tooltip;
     }
 
+    @Override
+    public String getTooltip() {
+        return tooltip;
+    }
 }

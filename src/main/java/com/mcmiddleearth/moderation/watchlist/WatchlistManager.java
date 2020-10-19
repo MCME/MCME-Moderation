@@ -46,7 +46,7 @@ public class WatchlistManager {
         if(dataFile.exists()) {
             YamlBridge yaml = new YamlBridge();
             yaml.load(dataFile);
-            yaml.getMap().forEach((name, data) -> watchlist.put(name, new WatchlistPlayerData((List<Map<String, Object>>) data)));
+            yaml.getMap().forEach((name, data) -> watchlist.put(name, new WatchlistPlayerData((Map<String, Object>) data)));
         }
     }
 
@@ -105,6 +105,7 @@ public class WatchlistManager {
             // Set name for watchlist entry after player changed minecraft username
             if(!firstMatch.getKey().equalsIgnoreCase(player.getName())) {
                 watchlist.remove(firstMatch.getKey());
+                firstMatch.getValue().setNameUnknown(false);
                 watchlist.put(player.getName(),firstMatch.getValue());
             }
 
@@ -115,6 +116,7 @@ public class WatchlistManager {
             }
             firstMatch.getValue().getReasons().sort(Comparator.comparing(WatchlistReason::getCreationTime));
         }
+        saveToFile();
     }
 
     private void putWithUnknownName(WatchlistPlayerData data) {
@@ -122,6 +124,7 @@ public class WatchlistManager {
         while(watchlist.containsKey("unknownName"+i)) {
             i++;
         }
+        data.setNameUnknown(true);
         watchlist.put("unknownName"+i,data);
     }
 
@@ -156,20 +159,20 @@ for(String name: knownPlayers.keySet()) {
 
     public void addWatchlist(String addPlayer, CommandSender commandSender, String reason) {
         WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,commandSender.getName(),addPlayer,
-                                                              commandSender.hasPermission(Permission.MODERATOR));
+                                                              commandSender.hasPermission(Permission.ADD_WATCHLIST));
         WatchlistPlayerData data = watchlist.get(addPlayer);
         if(data != null) {
             data.addReason(watchlistReason);
         } else {
             UUID uuid = getUUID(addPlayer);
-Logger.getGlobal().info("uuid "+uuid+" for "+addPlayer);
             data = new WatchlistPlayerData(uuid,watchlistReason);
-Logger.getGlobal().info("add "+addPlayer+" "+data.getUuid());
             watchlist.put(addPlayer,data);
         }
+        saveToFile();
     }
 
     public void removeWatchlist(String removePlayer) {
         watchlist.remove(removePlayer);
+        saveToFile();
     }
 }

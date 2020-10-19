@@ -28,7 +28,6 @@ public class Permission {
     public static final String SEE_WATCHLIST = "mcmemoderation.watchlist.see";
     public static final String ADD_WATCHLIST = "mcmemoderation.watchlist.add";
     public static final String REMOVE_WATCHLIST = "mcmemoderation.watchlist.remove";
-    public static final String MODERATOR = "mcmemoderation.moderator";
 
     public static final String SEE_REPORT = "mcmemoderation.report.see";
     public static final String SEND_REPORT = "mcmemoderation.report";

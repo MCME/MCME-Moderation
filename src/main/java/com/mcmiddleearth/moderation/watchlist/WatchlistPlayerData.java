@@ -28,6 +28,8 @@ public class WatchlistPlayerData {
 
     private static final UUID unknownUuid = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
+    private boolean nameUnknown = false;
+
     private UUID uuid;
 
     private List<WatchlistReason> reasons = new ArrayList<>();
@@ -42,8 +44,11 @@ public class WatchlistPlayerData {
      *
      * @param data from the watchlist.yml
      */
-    public WatchlistPlayerData(List<Map<String, Object>> data) {
-        data.forEach(reason -> {
+    public WatchlistPlayerData(Map<String, Object> data) {
+        uuid = UUID.fromString((String)data.get("uuid"));
+        nameUnknown = (boolean) data.get("nameUnknown");
+        List<Map<String,Object>> reasonData = (List<Map<String,Object>>) data.get("reasons");
+        reasonData.forEach(reason -> {
             try {
                 reasons.add(new WatchlistReason(reason));
             } catch (ParseException e) {
@@ -65,10 +70,15 @@ public class WatchlistPlayerData {
     }
 
     public void setUuid(UUID uuid) {
-Logger.getGlobal().info("unknown "+this.uuid.equals(unknownUuid));
         if (this.uuid.equals(unknownUuid) && uuid != null) {
             this.uuid = uuid;
         }
+    }
+
+    public boolean isNameUnknown() { return nameUnknown; }
+
+    public void setNameUnknown(boolean nameUnknown) {
+        this.nameUnknown = nameUnknown;
     }
 
     /**
@@ -78,10 +88,11 @@ Logger.getGlobal().info("unknown "+this.uuid.equals(unknownUuid));
      */
     public Map<String, Object> serialize() {
         Map<String, Object> result = new HashMap<>();
-        result.put("uuid", uuid);
+        result.put("uuid", uuid.toString());
         List<Map<String, Object>> reasonData = new ArrayList<>();
         reasons.forEach(reason -> reasonData.add(reason.serialize()));
         result.put("reasons", reasonData);
+        result.put("nameUnknown",nameUnknown);
         return result;
     }
 

@@ -12,4 +12,7 @@ public interface HelpfulArgumentType {
     //<S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder, String tooltip);
     public void setTooltip(String tooltip);
 
+    default public String getTooltip() {
+        return null;
+    }
 }

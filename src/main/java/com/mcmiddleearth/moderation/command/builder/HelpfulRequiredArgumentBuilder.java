@@ -21,6 +21,9 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
         this.type = type;
         this.helpText = "";
         this.tooltip = "";
+        if(type instanceof HelpfulArgumentType && ((HelpfulArgumentType)type).getTooltip()!=null) {
+            tooltip = ((HelpfulArgumentType)type).getTooltip();
+        }
     }
 
     /**
@@ -56,7 +59,7 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
      */
     public HelpfulRequiredArgumentBuilder<T> withTooltip(String tooltip) {
         this.tooltip = tooltip;
-        if(type instanceof HelpfulArgumentType) {
+        if(type instanceof HelpfulArgumentType && ((HelpfulArgumentType)type).getTooltip() != null) {
             ((HelpfulArgumentType)type).setTooltip(tooltip);
         }
         return getThis();

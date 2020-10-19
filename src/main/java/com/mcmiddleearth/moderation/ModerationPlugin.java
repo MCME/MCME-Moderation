@@ -23,8 +23,10 @@ import com.mcmiddleearth.moderation.configuration.ModerationConfig;
 import com.mcmiddleearth.moderation.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -120,6 +122,18 @@ public class ModerationPlugin extends Plugin implements Listener {
             } 
         }
     }
+
+    public static void sendInfo(CommandSender recipient, ComponentBuilder message) {
+        ComponentBuilder result = new ComponentBuilder("[Mod]").color(Style.MOD).append(" ").color(Style.INFO);
+        result.append(message.create());
+        recipient.sendMessage(result.create());
+    }
+    public static void sendError(CommandSender recipient, ComponentBuilder message) {
+        ComponentBuilder result = new ComponentBuilder("[Mod]").color(Style.MOD).append(" ").color(Style.ERROR);
+        result.append(message.create());
+        recipient.sendMessage(result.create());
+    }
+
 
     public static ModerationPlugin getInstance() {
         return instance;

@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 public class ReasonArgumentType implements ArgumentType<String>,  HelpfulArgumentType {
 
-    private String tooltip;
+    private String tooltip = "Reason of your report. Quickly explain the misbehaviour.";
 
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
@@ -68,5 +68,10 @@ public class ReasonArgumentType implements ArgumentType<String>,  HelpfulArgumen
     @Override
     public void setTooltip(String tooltip) {
         this.tooltip = tooltip;
+    }
+
+    @Override
+    public String getTooltip() {
+        return tooltip;
     }
 }

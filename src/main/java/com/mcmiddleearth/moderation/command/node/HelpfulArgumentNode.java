@@ -42,6 +42,11 @@ public class HelpfulArgumentNode<T> extends ArgumentCommandNode<CommandSender, T
     @Override
     public void setHelpText(String helpText) {
         this.helpText = helpText;
+        for(CommandNode<CommandSender> child: getChildren()) {
+            if(child instanceof HelpfulNode && ((HelpfulNode)child).getHelpText().equals("")) {
+                ((HelpfulNode)child).setHelpText(helpText);
+            }
+        }
     }
 
     @Override
@@ -65,7 +70,7 @@ public class HelpfulArgumentNode<T> extends ArgumentCommandNode<CommandSender, T
         super.addChild(node);
         CommandNode<CommandSender> child = getChildren().stream().filter(search -> search.getName().equals(node.getName()))
                 .findFirst().orElse(null);
-        if(child instanceof HelpfulNode) {
+        if(child instanceof HelpfulNode && ((HelpfulNode)child).getHelpText().equals("")) {
             ((HelpfulNode)child).setHelpText(helpText);
         }
     }
