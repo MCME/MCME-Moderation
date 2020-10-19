@@ -16,6 +16,7 @@
  */
 package com.mcmiddleearth.moderation.command.argument;
 
+import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -24,51 +25,70 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Logger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * @author Eriol_Eandur
  */
 
-public class PlayerArgument implements HelpfulArgument {
+public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgumentType {
+
+    private String tooltip = "Number of page you want to see.";
+
+    private final Function<CommandContext, Collection<String>> listProvider;
+
+    public PageArgumentType(Function<CommandContext, Collection<String>> listProvider) {
+        this.listProvider = listProvider;
+    }
 
     @Override
-    public String parse(StringReader reader) throws CommandSyntaxException {
-        String o = reader.readString();
-        if (ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet()).contains(o)) {
-            return o;
-        }
-        throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of PlayerArgument")),
-                                         new LiteralMessage(String.format("Player not found: %s",o)));
+    public Integer parse(StringReader reader) throws CommandSyntaxException {
+        String o = reader.readUnquotedString();
+        try {
+            int page = Integer.parseInt(o);
+            if(page>0) {
+                return page;
+            }
+        } catch(NumberFormatException ex){}
+        throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of PageArgument")),
+                new LiteralMessage("Page must be an integer > 0"));
     }
 
     @Override
     public Collection<String> getExamples() {
-        return ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet());
+        return Arrays.asList(new String[]{"1","2","3"}.clone());
     }
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        for (String option : ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet())) {
-            if (option.toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
-                builder.suggest(option);
+        int maxPage = listProvider.apply(context).size() / 10 +1;
+        for (int i = 1; i <= maxPage; i++) {
+            if ((""+i).toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
+                if(tooltip == null) {
+                    builder.suggest(""+i);
+                } else {
+                    builder.suggest(""+i, new LiteralMessage(tooltip));
+                }
             }
         }
         return builder.buildFuture();
     }
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder, String tooltip) {
-        for (String option : ProxyServer.getInstance().getPlayers().stream().map(ProxiedPlayer::getName).collect(Collectors.toSet())) {
-            if (option.toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
-                builder.suggest(option, new LiteralMessage(tooltip));
-            }
-        }
-        return builder.buildFuture();
+    @Override
+    public void setTooltip(String tooltip) {
+        this.tooltip = tooltip;
+    }
+
+    @Override
+    public String getTooltip() {
+        return tooltip;
     }
 }

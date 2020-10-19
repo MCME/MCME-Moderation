@@ -18,7 +18,10 @@ package com.mcmiddleearth.moderation.watchlist;
 
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Eriol_Eandur
@@ -30,9 +33,11 @@ public class WatchlistReason {
 
     private final String description;
 
-    private final UUID initiator;
+    private final String initiator;
 
     private final boolean byModerator;
+
+    private final String nameAtCreationTime;
 
     private final static String dateFormatPattern = "EEE, MMM d, yy, h:mm:ss a";
 
@@ -43,11 +48,12 @@ public class WatchlistReason {
      * @param initiator
      * @param byModerator
      */
-    public WatchlistReason(Date creationTime, String description, UUID initiator, boolean byModerator) {
+    public WatchlistReason(Date creationTime, String description, String initiator, String nameAtCreationTime, boolean byModerator) {
         this.creationTime = creationTime;
         this.description = description;
         this.initiator = initiator;
         this.byModerator = byModerator;
+        this.nameAtCreationTime = nameAtCreationTime;
     }
 
     /**
@@ -57,7 +63,7 @@ public class WatchlistReason {
      */
     public WatchlistReason(Map<String,Object> data) throws ParseException {
         this(DateFormat.getDateTimeInstance(DateFormat.DEFAULT,DateFormat.DEFAULT,Locale.US).parse((String) data.get("creationTime")),
-                (String) data.get("description"), UUID.fromString((String)data.get("initiator")),
+                (String) data.get("description"), (String) data.get("initiator"), (String) data.get("nameAtCreationTime"),
                 (boolean) data.get("byModerator"));
     }
 
@@ -69,9 +75,11 @@ public class WatchlistReason {
         return description;
     }
 
-    public UUID getInitiator() {
+    public String getInitiator() {
         return initiator;
     }
+
+    public String getNameAtCreationTime() { return nameAtCreationTime; }
 
     public boolean isByModerator() {
         return byModerator;
@@ -85,7 +93,8 @@ public class WatchlistReason {
         Map<String,Object> result = new HashMap<>();
         result.put("creationTime", DateFormat.getDateTimeInstance(DateFormat.DEFAULT,DateFormat.DEFAULT,Locale.US).format(creationTime));
         result.put("description", description);
-        result.put("initiator",initiator.toString());
+        result.put("initiator",initiator);
+        result.put("nameAtCreationTime",nameAtCreationTime);
         result.put("byModerator", byModerator);
         return result;
     }

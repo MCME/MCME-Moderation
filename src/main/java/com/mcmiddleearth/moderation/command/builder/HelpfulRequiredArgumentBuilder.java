@@ -1,5 +1,6 @@
 package com.mcmiddleearth.moderation.command.builder;
 
+import com.mcmiddleearth.moderation.command.argument.HelpfulArgumentType;
 import com.mcmiddleearth.moderation.command.node.HelpfulArgumentNode;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
@@ -8,18 +9,21 @@ import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
 import net.md_5.bungee.api.CommandSender;
 
-public class HelpfulRequiredArgumentBuilder extends ArgumentBuilder<CommandSender, HelpfulRequiredArgumentBuilder> {
+public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSender, HelpfulRequiredArgumentBuilder<T>> {
     private String helpText;
     private String tooltip;
     private final String name;
-    private final ArgumentType<String> type;
+    private final ArgumentType<T> type;
     private SuggestionProvider<CommandSender> suggestionsProvider = null;
 
-    private HelpfulRequiredArgumentBuilder(final String name, final ArgumentType<String> type) {
+    private HelpfulRequiredArgumentBuilder(final String name, final ArgumentType<T> type) {
         this.name = name;
         this.type = type;
         this.helpText = "";
         this.tooltip = "";
+        if(type instanceof HelpfulArgumentType && ((HelpfulArgumentType)type).getTooltip()!=null) {
+            tooltip = ((HelpfulArgumentType)type).getTooltip();
+        }
     }
 
     /**
@@ -27,11 +31,11 @@ public class HelpfulRequiredArgumentBuilder extends ArgumentBuilder<CommandSende
      * @param name name of the node
      * @return a HelpfulLiteralBuilder object to build the node.
      */
-    public static HelpfulRequiredArgumentBuilder argument(final String name, final ArgumentType<String> type) {
-        return new HelpfulRequiredArgumentBuilder(name, type);
+    public static <T> HelpfulRequiredArgumentBuilder<T> argument(final String name, final ArgumentType<T> type) {
+        return new HelpfulRequiredArgumentBuilder<>(name, type);
     }
 
-    public HelpfulRequiredArgumentBuilder suggests(final SuggestionProvider<CommandSender> provider) {
+    public HelpfulRequiredArgumentBuilder<T> suggests(final SuggestionProvider<CommandSender> provider) {
         this.suggestionsProvider = provider;
         return getThis();
     }
@@ -43,7 +47,7 @@ public class HelpfulRequiredArgumentBuilder extends ArgumentBuilder<CommandSende
      * @param helpText text to display in help messages.
      * @return this HelpfulRequiredArgumentBuilder
      */
-    public HelpfulRequiredArgumentBuilder withHelpText(String helpText) {
+    public HelpfulRequiredArgumentBuilder<T> withHelpText(String helpText) {
         this.helpText = helpText;
         return getThis();
     }
@@ -53,8 +57,11 @@ public class HelpfulRequiredArgumentBuilder extends ArgumentBuilder<CommandSende
      * @param tooltip tooltip to display
      * @return  this HelpfulRequiredArgumentBuilder
      */
-    public HelpfulRequiredArgumentBuilder withTooltip(String tooltip) {
+    public HelpfulRequiredArgumentBuilder<T> withTooltip(String tooltip) {
         this.tooltip = tooltip;
+        if(type instanceof HelpfulArgumentType && ((HelpfulArgumentType)type).getTooltip() != null) {
+            ((HelpfulArgumentType)type).setTooltip(tooltip);
+        }
         return getThis();
     }
 
@@ -63,11 +70,11 @@ public class HelpfulRequiredArgumentBuilder extends ArgumentBuilder<CommandSende
     }
 
     @Override
-    protected HelpfulRequiredArgumentBuilder getThis() {
+    protected HelpfulRequiredArgumentBuilder<T> getThis() {
         return this;
     }
 
-    public ArgumentType<String> getType() {
+    public ArgumentType<T> getType() {
         return type;
     }
 
@@ -75,8 +82,8 @@ public class HelpfulRequiredArgumentBuilder extends ArgumentBuilder<CommandSende
         return name;
     }
 
-    public ArgumentCommandNode<CommandSender, String> build() {
-        final ArgumentCommandNode<CommandSender, String> result = new HelpfulArgumentNode(getName(), getType(), getCommand(),
+    public ArgumentCommandNode<CommandSender, T> build() {
+        final ArgumentCommandNode<CommandSender, T> result = new HelpfulArgumentNode<>(getName(), getType(), getCommand(),
                                                                     getRequirement(), getRedirect(), getRedirectModifier(),
                                                                     isFork(), getSuggestionsProvider(), helpText, tooltip);
 
