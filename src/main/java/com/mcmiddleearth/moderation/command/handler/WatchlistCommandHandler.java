@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
 /**
@@ -106,21 +107,27 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                                                 context.getArgument("reason", String.class))))))
 
                 .then(HelpfulLiteralBuilder.literal("remove")
-                        .withHelpText("Remove a player from watchlist")
-                        .withTooltip("Removes a player from watchlist entirely with all reasons.")
+                        .withHelpText("Remove from watchlist")
+                        .withTooltip("Removes a reason from a player or a player entirely from watchlist.")
                         .requires(commandSender -> commandSender.hasPermission(Permission.REMOVE_WATCHLIST))
 
                         .then(HelpfulRequiredArgumentBuilder.argument("player", new KnownPlayerArgumentType())
                                 .withTooltip("Name of player to remove from watchlist")
-                                .executes(context -> removePlayer(context.getSource(),context.getArgument("player",String.class))))));
+                                .executes(context -> removePlayer(context.getSource(),context.getArgument("player",String.class)))
+
+                                .then(HelpfulRequiredArgumentBuilder.argument("reason",integer(1))
+                                    .withTooltip("No. of Reason to remove.")
+                                    .executes(context -> removeReason(context.getSource(),context.getArgument("player",String.class),
+                                                                                          context.getArgument("reason",Integer.class)))))));
     }
 
     private int viewDetails(CommandSender commandSender, String showPlayer) {
         WatchlistPlayerData data = ModerationPlugin.getWatchlistManager().getWatchlistData(showPlayer);
         if(data != null) {
             StringBuilder message = new StringBuilder("Watchlist reasons for " + Style.INFO_STRESSED + showPlayer + Style.INFO+":");
-            for(WatchlistReason reason: data.getReasons()) {
-                message.append("\n" + Style.INFO_LIGHT + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US).format(reason.getCreationTime()))
+            for(int i = 0; i < data.getReasons().size(); i++) {
+                WatchlistReason reason = data.getReasons().get(i);
+                message.append("\n[" + (i+1) + "] " + Style.INFO_LIGHT + DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US).format(reason.getCreationTime()))
                        .append(Style.INFO + " (" + (reason.isByModerator() ? Style.MOD : Style.UNCONFIRMED) + "by "+reason.getInitiator())
                        .append(Style.INFO + ") " + reason.getDescription());
                 if (!reason.getNameAtCreationTime().equals(showPlayer)) {
@@ -178,7 +185,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                 } else if(displayList.get(i).getValue().isNameUnknown()) {
                     color = Style.WARNING;
                 }
-                builder.append("\n[" + (i+1) + "] ").color(Style.INFO)
+                builder.append("\n- ").color(Style.INFO)
                         .append(name).color(color).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/watchlist " + displayList.get(i).getKey()))
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("Click for details.")
                                 .color(Style.TOOLTIP).create())));
@@ -225,9 +232,36 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     }
 
     private int removePlayer(CommandSender commandSender, String removePlayer) {
-        ModerationPlugin.getWatchlistManager().removeWatchlist(removePlayer);
-        ModerationPlugin.sendInfo(commandSender,new ComponentBuilder("Removed "+Style.INFO_STRESSED+removePlayer+Style.INFO+" from watchlist."));
+        WatchlistPlayerData data = ModerationPlugin.getWatchlistManager().getWatchlistData(removePlayer);
+        if(data != null) {
+            ModerationPlugin.getWatchlistManager().removeWatchlist(removePlayer);
+            ModerationPlugin.sendInfo(commandSender, new ComponentBuilder("Removed " + Style.INFO_STRESSED + removePlayer + Style.INFO + " from watchlist."));
+        } else {
+            ModerationPlugin.sendError(commandSender,new ComponentBuilder("Player not on watchlist!"));
+        }
         return 0;
     }
+
+    private int removeReason(CommandSender commandSender, String player, Integer reason) {
+        WatchlistPlayerData data = ModerationPlugin.getWatchlistManager().getWatchlistData(player);
+        if(data != null) {
+            if (reason > data.getReasons().size()) {
+                ModerationPlugin.sendError(commandSender, new ComponentBuilder("Player does not have that many reasons."));
+            } else {
+                if(data.getReasons().size()>1) {
+                    ModerationPlugin.getWatchlistManager().removeWatchlistReason(player, reason - 1);
+                    ModerationPlugin.sendInfo(commandSender, new ComponentBuilder("Watchlist reason removed from player '" + player + "'."));
+                } else {
+                    ModerationPlugin.getWatchlistManager().removeWatchlist(player);
+                    ModerationPlugin.sendInfo(commandSender,new ComponentBuilder("Removed "+Style.INFO_STRESSED+player+Style.INFO+" from watchlist as you removed the last reason for him to be there."));
+                }
+            }
+        } else {
+            ModerationPlugin.sendError(commandSender,new ComponentBuilder("Player not on watchlist!"));
+        }
+        return 0;
+    }
+
+
 
 }

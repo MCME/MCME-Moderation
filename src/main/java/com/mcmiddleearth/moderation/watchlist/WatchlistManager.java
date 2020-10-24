@@ -139,9 +139,9 @@ public class WatchlistManager {
 
     public void addKnownPlayer(ProxiedPlayer player) {
         knownPlayers.put(player.getName(),player.getUniqueId());
-for(String name: knownPlayers.keySet()) {
-    Logger.getGlobal().info("Known: "+name+" "+knownPlayers.get(name));
-}
+//for(String name: knownPlayers.keySet()) {
+//    Logger.getGlobal().info("Known: "+name+" "+knownPlayers.get(name));
+//}
     }
 
     public boolean isKnown(String name) {
@@ -174,5 +174,10 @@ for(String name: knownPlayers.keySet()) {
     public void removeWatchlist(String removePlayer) {
         watchlist.remove(removePlayer);
         saveToFile();
+    }
+
+    public void removeWatchlistReason(String player, int i) {
+        WatchlistPlayerData data = watchlist.get(player);
+        data.getReasons().remove(i);
     }
 }
