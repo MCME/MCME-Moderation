@@ -37,14 +37,12 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import org.bukkit.plugin.PluginLogger;
 
 import java.text.DateFormat;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
@@ -220,13 +218,15 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                                                                      +Style.INFO+" to watchlist for '"+reason+"'"));
         ComponentBuilder message = new ComponentBuilder(commandSender.getName()+" added "+Style.INFO_STRESSED+addPlayer
                                                                      +Style.INFO+" to watchlist for '"+reason+"'");
-        if(ModerationPlugin.getConfig().isReportSendIngame()) {
+        if(ModerationPlugin.getConfig().isWatchlistSendIngame()) {
             ProxyServer.getInstance().getPlayers().stream()
-                    .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT) && !moderator.equals(commandSender))
+                    .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST) && !moderator.equals(commandSender))
                     .forEach(moderator -> ModerationPlugin.sendInfo(moderator,message));
         }
-        if(ModerationPlugin.getConfig().isReportSendDiscord()) {
-            DiscordUtil.sendDiscord("**"+commandSender.getName()+"** reported player **"+addPlayer+".**\nReason: **"+reason+"**");
+        if(ModerationPlugin.getConfig().isWatchlistSendDiscord()) {
+            String discordChannel = ModerationPlugin.getConfig().getWatchlistDiscordChannel();
+            DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+addPlayer+".**\nReason: **"+reason+"**",
+                    ModerationPlugin.getConfig().isWatchlistPingModerators());
         }
         return 0;
     }

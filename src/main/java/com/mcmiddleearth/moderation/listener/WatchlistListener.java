@@ -17,10 +17,16 @@
 package com.mcmiddleearth.moderation.listener;
 
 import com.mcmiddleearth.moderation.ModerationPlugin;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
+import com.mcmiddleearth.moderation.Permission;
+import com.mcmiddleearth.moderation.Style;
+import com.mcmiddleearth.moderation.util.DiscordUtil;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Eriol_Eandur
@@ -37,9 +43,23 @@ public class WatchlistListener implements Listener {
             //handle name changes of players
             ModerationPlugin.getWatchlistManager().updateWatchlist(event.getPlayer());
 
+            if(ModerationPlugin.getWatchlistManager().isOnWatchlist(event.getPlayer().getName())) {
+                ProxyServer.getInstance().getScheduler().schedule(ModerationPlugin.getInstance(), () -> {
+                    ComponentBuilder message = new ComponentBuilder(Style.INFO + "Watched player " + Style.INFO_STRESSED + event.getPlayer().getName()
+                            + Style.INFO + " joined.");
 
-
-            //TODO: Send notification to moderators
+                    if (ModerationPlugin.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
+                        ProxyServer.getInstance().getPlayers().stream()
+                                .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
+                                .forEach(moderator -> ModerationPlugin.sendInfo(moderator, message));
+                    }
+                    if (ModerationPlugin.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
+                        String discordChannel = ModerationPlugin.getConfig().getWatchlistDiscordChannel();
+                        DiscordUtil.sendDiscord(discordChannel, "Watched player **" + event.getPlayer().getName() + "** joined the server.",
+                                ModerationPlugin.getConfig().isWatchlistPingModerators());
+                    }
+                }, 5, TimeUnit.SECONDS);
+            }
         }
     }
 }
