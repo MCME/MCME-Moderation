@@ -19,10 +19,15 @@ package com.mcmiddleearth.moderation.watchlist;
 import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mcmiddleearth.moderation.Permission;
 import com.mcmiddleearth.moderation.configuration.YamlBridge;
+import com.sun.deploy.net.socket.UnixDomainSocket;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -61,6 +66,10 @@ public class WatchlistManager {
      */
     public boolean isOnWatchlist(String name) {
         return watchlist.keySet().stream().anyMatch(key -> key.equalsIgnoreCase(name));
+    }
+
+    public boolean hasWatchedIp(ProxiedPlayer player) {
+        return watchlist.values().stream().anyMatch(playerData -> playerData.getIp().equals(getIp(player.getUniqueId())));
     }
 
     /**
@@ -157,27 +166,57 @@ public class WatchlistManager {
                                                .map(Map.Entry::getValue).findFirst().orElse(null);
     }
 
+    public String getIp(UUID uuid) {
+        SocketAddress address =ProxyServer.getInstance().getPlayer(uuid).getSocketAddress();
+        if(address instanceof InetSocketAddress) {
+           InetAddress inetAddress = ((InetSocketAddress)address).getAddress();
+           if(inetAddress!=null) {
+               return inetAddress.getHostAddress();
+           } else {
+               return null;
+           }
+
+        } else {//if(address instanceof UnixDomainSocketAddress) {
+            return null;
+        }
+    }
+
     public void addWatchlist(String addPlayer, CommandSender commandSender, String reason) {
-        WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,commandSender.getName(),addPlayer,
-                                                              commandSender.hasPermission(Permission.ADD_WATCHLIST));
+        String initiator = (commandSender!=null?commandSender.getName():"plugin");
+        boolean byModerator = commandSender == null || commandSender.hasPermission(Permission.ADD_WATCHLIST);
+        WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,initiator,addPlayer,byModerator);
         WatchlistPlayerData data = watchlist.get(addPlayer);
         if(data != null) {
             data.addReason(watchlistReason);
         } else {
             UUID uuid = getUUID(addPlayer);
-            data = new WatchlistPlayerData(uuid,watchlistReason);
+            String ip = getIp(uuid);
+            data = new WatchlistPlayerData(uuid,ip,watchlistReason);
             watchlist.put(addPlayer,data);
         }
         saveToFile();
     }
 
     public void removeWatchlist(String removePlayer) {
+        WatchlistPlayerData playerData = watchlist.get(removePlayer);
         watchlist.remove(removePlayer);
+        getWatchedAliases(removePlayer).forEach(alias -> watchlist.remove(getName(alias)));
         saveToFile();
     }
 
     public void removeWatchlistReason(String player, int i) {
         WatchlistPlayerData data = watchlist.get(player);
         data.getReasons().remove(i);
+    }
+
+    public Collection<WatchlistPlayerData> getWatchedAliases(String player) {
+        WatchlistPlayerData playerData = watchlist.get(player);
+        return watchlist.values().stream().filter(watchlistPlayerData -> watchlistPlayerData.getIp().equals(playerData.getIp()))
+                .collect(Collectors.toList());
+    }
+
+    public String getName(WatchlistPlayerData playerData) {
+        return knownPlayers.entrySet().stream().filter(entry -> entry.getValue().equals(playerData.getUuid()))
+                .map(Map.Entry::getKey).findFirst().orElse(null);
     }
 }

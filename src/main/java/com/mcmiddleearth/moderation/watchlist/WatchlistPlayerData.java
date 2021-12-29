@@ -32,10 +32,15 @@ public class WatchlistPlayerData {
 
     private UUID uuid;
 
+    private String ip;
+
     private List<WatchlistReason> reasons = new ArrayList<>();
 
-    public WatchlistPlayerData(UUID uuid, WatchlistReason reason) {
+    public WatchlistPlayerData(UUID uuid, String ip, WatchlistReason reason) {
         this.uuid = (uuid != null ? uuid : unknownUuid);
+        if(ip == null) {
+            ip = "unknown";
+        }
         reasons.add(reason);
     }
 
@@ -47,6 +52,10 @@ public class WatchlistPlayerData {
     public WatchlistPlayerData(Map<String, Object> data) {
         uuid = UUID.fromString((String)data.get("uuid"));
         nameUnknown = (boolean) data.get("nameUnknown");
+        ip = (String) data.get("ip");
+        if(ip == null) {
+            ip = "unknown";
+        }
         List<Map<String,Object>> reasonData = (List<Map<String,Object>>) data.get("reasons");
         reasonData.forEach(reason -> {
             try {
@@ -67,6 +76,10 @@ public class WatchlistPlayerData {
 
     public boolean isUuidUnknown() {
         return uuid.equals(unknownUuid);
+    }
+
+    public String getIp() {
+        return ip;
     }
 
     public void setUuid(UUID uuid) {
@@ -93,6 +106,7 @@ public class WatchlistPlayerData {
         reasons.forEach(reason -> reasonData.add(reason.serialize()));
         result.put("reasons", reasonData);
         result.put("nameUnknown",nameUnknown);
+        result.put("ip",ip);
         return result;
     }
 
