@@ -18,7 +18,6 @@ package com.mcmiddleearth.moderation.watchlist;
 
 import java.text.ParseException;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * @author Eriol_Eandur
@@ -34,7 +33,7 @@ public class WatchlistPlayerData {
 
     private String ip;
 
-    private List<WatchlistReason> reasons = new ArrayList<>();
+    private final List<WatchlistReason> reasons = new ArrayList<>();
 
     public WatchlistPlayerData(UUID uuid, String ip, WatchlistReason reason) {
         this.uuid = (uuid != null ? uuid : unknownUuid);
@@ -97,7 +96,7 @@ public class WatchlistPlayerData {
     /**
      * Required to save data to watchlist.yml
      *
-     * @return
+     * @return Map of WatchlistPlayerData
      */
     public Map<String, Object> serialize() {
         Map<String, Object> result = new HashMap<>();

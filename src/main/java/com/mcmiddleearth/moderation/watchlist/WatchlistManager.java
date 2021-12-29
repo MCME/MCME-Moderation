@@ -19,7 +19,6 @@ package com.mcmiddleearth.moderation.watchlist;
 import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mcmiddleearth.moderation.Permission;
 import com.mcmiddleearth.moderation.configuration.YamlBridge;
-import com.sun.deploy.net.socket.UnixDomainSocket;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -29,7 +28,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -69,7 +67,8 @@ public class WatchlistManager {
     }
 
     public boolean hasWatchedIp(ProxiedPlayer player) {
-        return watchlist.values().stream().anyMatch(playerData -> playerData.getIp().equals(getIp(player.getUniqueId())));
+        return watchlist.values().stream().anyMatch(playerData -> !playerData.getIp().equals("unknown")
+                                                                   && playerData.getIp().equals(getIp(player.getUniqueId())));
     }
 
     /**
@@ -198,7 +197,7 @@ public class WatchlistManager {
     }
 
     public void removeWatchlist(String removePlayer) {
-        WatchlistPlayerData playerData = watchlist.get(removePlayer);
+        //WatchlistPlayerData playerData = watchlist.get(removePlayer);
         watchlist.remove(removePlayer);
         getWatchedAliases(removePlayer).forEach(alias -> watchlist.remove(getName(alias)));
         saveToFile();
@@ -211,7 +210,8 @@ public class WatchlistManager {
 
     public Collection<WatchlistPlayerData> getWatchedAliases(String player) {
         WatchlistPlayerData playerData = watchlist.get(player);
-        return watchlist.values().stream().filter(watchlistPlayerData -> watchlistPlayerData.getIp().equals(playerData.getIp()))
+        return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
+                                                                && watchlistPlayerData.getIp().equals(playerData.getIp()))
                 .collect(Collectors.toList());
     }
 

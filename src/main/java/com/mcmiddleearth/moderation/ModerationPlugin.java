@@ -148,11 +148,11 @@ public class ModerationPlugin extends Plugin implements Listener {
         return watchlistManager;
     }
 
-    public static boolean isOnWatchlist(ProxiedPlayer player) {
+    /*public static boolean isOnWatchlist(ProxiedPlayer player) {
         return getWatchlistManager().isOnWatchlist(player.getName());
     }
 
     public static String getTablistPrefix() {
         return getConfig().getWatchlistTablistPrefix();
-    }
+    }*/
 }
