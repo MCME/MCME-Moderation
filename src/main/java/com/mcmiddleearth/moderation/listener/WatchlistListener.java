@@ -31,6 +31,7 @@ import net.md_5.bungee.event.EventPriority;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * @author Eriol_Eandur
@@ -66,13 +67,13 @@ public class WatchlistListener implements Listener {
             }  else if(ModerationPlugin.getWatchlistManager().hasWatchedIp(event.getPlayer())) {
                 Collection<WatchlistPlayerData> aliases
                         = ModerationPlugin.getWatchlistManager().getWatchedAliases(event.getPlayer().getName());
-                String reason = "Alt of "+ Joiner.on(", ").join(aliases.toArray(aliases.stream().map(alias -> {
+                String reason = "Alt of "+ Joiner.on(", ").join(aliases.stream().map(alias -> {
                             if(alias.isNameUnknown()) {
-                                return alias.getUuid();
+                                return alias.getUuid().toString();
                             } else {
-                                return ModerationPlugin.getWatchlistManager().getName(alias);
+                                return ModerationPlugin.getWatchlistManager().getName(alias)+" ("+alias.getUuid().toString()+")";
                             }
-                        }).toArray()));
+                        }).toArray());
                 ModerationPlugin.getWatchlistManager().addWatchlist(event.getPlayer().getName(),
                         null,
                         reason);

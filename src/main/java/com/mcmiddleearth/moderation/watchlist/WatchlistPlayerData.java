@@ -40,6 +40,7 @@ public class WatchlistPlayerData {
         if(ip == null) {
             ip = "unknown";
         }
+        this.ip = ip;
         reasons.add(reason);
     }
 
@@ -79,6 +80,10 @@ public class WatchlistPlayerData {
 
     public String getIp() {
         return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public void setUuid(UUID uuid) {

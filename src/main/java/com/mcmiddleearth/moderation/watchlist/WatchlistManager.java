@@ -185,11 +185,12 @@ public class WatchlistManager {
         boolean byModerator = commandSender == null || commandSender.hasPermission(Permission.ADD_WATCHLIST);
         WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,initiator,addPlayer,byModerator);
         WatchlistPlayerData data = watchlist.get(addPlayer);
+        UUID uuid = getUUID(addPlayer);
+        String ip = getIp(uuid);
         if(data != null) {
             data.addReason(watchlistReason);
+            data.setIp(ip);
         } else {
-            UUID uuid = getUUID(addPlayer);
-            String ip = getIp(uuid);
             data = new WatchlistPlayerData(uuid,ip,watchlistReason);
             watchlist.put(addPlayer,data);
         }
@@ -208,15 +209,19 @@ public class WatchlistManager {
         data.getReasons().remove(i);
     }
 
-    public Collection<WatchlistPlayerData> getWatchedAliases(String player) {
-        WatchlistPlayerData playerData = watchlist.get(player);
-        return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
-                                                                && watchlistPlayerData.getIp().equals(playerData.getIp()))
-                .collect(Collectors.toList());
+    public Collection<WatchlistPlayerData> getWatchedAliases(String playerName) {
+        //WatchlistPlayerData playerData = watchlist.get(player);
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerName);
+        if(player!=null) {
+            return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
+                            && watchlistPlayerData.getIp().equals(getIp(player.getUniqueId())))
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     public String getName(WatchlistPlayerData playerData) {
-        return knownPlayers.entrySet().stream().filter(entry -> entry.getValue().equals(playerData.getUuid()))
+        return watchlist.entrySet().stream().filter(entry -> entry.getValue().getUuid().equals(playerData.getUuid()))
                 .map(Map.Entry::getKey).findFirst().orElse(null);
     }
 }
