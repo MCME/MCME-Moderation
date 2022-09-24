@@ -166,18 +166,17 @@ public class WatchlistManager {
     }
 
     public String getIp(UUID uuid) {
-        SocketAddress address =ProxyServer.getInstance().getPlayer(uuid).getSocketAddress();
-        if(address instanceof InetSocketAddress) {
-           InetAddress inetAddress = ((InetSocketAddress)address).getAddress();
-           if(inetAddress!=null) {
-               return inetAddress.getHostAddress();
-           } else {
-               return null;
-           }
-
-        } else {//if(address instanceof UnixDomainSocketAddress) {
-            return null;
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+        if(player != null) {
+            SocketAddress address =player.getSocketAddress();
+            if(address instanceof InetSocketAddress) {
+               InetAddress inetAddress = ((InetSocketAddress)address).getAddress();
+               if(inetAddress!=null) {
+                   return inetAddress.getHostAddress();
+               }
+            } //if(address instanceof UnixDomainSocketAddress) {
         }
+        return null;
     }
 
     public void addWatchlist(String addPlayer, CommandSender commandSender, String reason) {
