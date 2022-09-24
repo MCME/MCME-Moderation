@@ -25,7 +25,6 @@ import com.mcmiddleearth.moderation.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.moderation.util.DiscordUtil;
 import com.mojang.brigadier.CommandDispatcher;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -66,9 +65,13 @@ public class ReportCommandHandler extends AbstractCommandHandler {
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT))
                     .forEach(moderator -> ModerationPlugin.sendInfo(moderator,message));
         }
-        ModerationPlugin.getWatchlistManager().addWatchlist(player, commandSender, reason);
+        if(ModerationPlugin.getConfig().isReportAddToWatchlist()) {
+            ModerationPlugin.getWatchlistManager().addWatchlist(player, commandSender, reason);
+        }
         if(ModerationPlugin.getConfig().isReportSendDiscord()) {
-            DiscordUtil.sendDiscord("**"+commandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**");
+            String discordChannel = ModerationPlugin.getConfig().getReportDiscordChannel();
+            DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**",
+                                    ModerationPlugin.getConfig().isReportPingModerators());
         }
         ModerationPlugin.sendInfo(commandSender,new ComponentBuilder("Your report has been sent to the moderation team."));
         return 0;

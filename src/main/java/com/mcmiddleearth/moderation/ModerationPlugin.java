@@ -27,6 +27,7 @@ import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -145,5 +146,13 @@ public class ModerationPlugin extends Plugin implements Listener {
 
     public static WatchlistManager getWatchlistManager() {
         return watchlistManager;
+    }
+
+    public static boolean isOnWatchlist(ProxiedPlayer player) {
+        return getWatchlistManager().isOnWatchlist(player.getName());
+    }
+
+    public static String getTablistPrefix() {
+        return getConfig().getWatchlistTablistPrefix();
     }
 }

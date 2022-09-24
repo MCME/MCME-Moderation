@@ -16,11 +16,22 @@
  */
 package com.mcmiddleearth.moderation.listener;
 
+import com.google.common.base.Joiner;
 import com.mcmiddleearth.moderation.ModerationPlugin;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
+import com.mcmiddleearth.moderation.Permission;
+import com.mcmiddleearth.moderation.Style;
+import com.mcmiddleearth.moderation.util.DiscordUtil;
+import com.mcmiddleearth.moderation.watchlist.WatchlistPlayerData;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
+import net.md_5.bungee.event.EventPriority;
+
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * @author Eriol_Eandur
@@ -28,7 +39,7 @@ import net.md_5.bungee.event.EventHandler;
 
 public class WatchlistListener implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void playerJoin(ServerConnectEvent event) {
         if(event.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
 
@@ -37,9 +48,51 @@ public class WatchlistListener implements Listener {
             //handle name changes of players
             ModerationPlugin.getWatchlistManager().updateWatchlist(event.getPlayer());
 
+            if(ModerationPlugin.getWatchlistManager().isOnWatchlist(event.getPlayer().getName())) {
+                ProxyServer.getInstance().getScheduler().schedule(ModerationPlugin.getInstance(), () -> {
+                    ComponentBuilder message = new ComponentBuilder(Style.INFO + "Watched player " + Style.INFO_STRESSED + event.getPlayer().getName()
+                            + Style.INFO + " joined.");
 
-
-            //TODO: Send notification to moderators
+                    if (ModerationPlugin.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
+                        ProxyServer.getInstance().getPlayers().stream()
+                                .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
+                                .forEach(moderator -> ModerationPlugin.sendInfo(moderator, message));
+                    }
+                    if (ModerationPlugin.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
+                        String discordChannel = ModerationPlugin.getConfig().getWatchlistDiscordChannel();
+                        DiscordUtil.sendDiscord(discordChannel, "Watched player **" + event.getPlayer().getName() + "** joined the server.",
+                                ModerationPlugin.getConfig().isWatchlistPingModerators());
+                    }
+                }, 5, TimeUnit.SECONDS);
+            }  else if(ModerationPlugin.getWatchlistManager().hasWatchedIp(event.getPlayer())) {
+                Collection<WatchlistPlayerData> aliases
+                        = ModerationPlugin.getWatchlistManager().getWatchedAliases(event.getPlayer().getName());
+                String reason = "Alt of "+ Joiner.on(", ").join(aliases.stream().map(alias -> {
+                            if(alias.isNameUnknown()) {
+                                return alias.getUuid().toString();
+                            } else {
+                                return ModerationPlugin.getWatchlistManager().getName(alias)+" ("+alias.getUuid().toString()+")";
+                            }
+                        }).toArray());
+                ModerationPlugin.getWatchlistManager().addWatchlist(event.getPlayer().getName(),
+                        null,
+                        reason);
+                ProxyServer.getInstance().getScheduler().schedule(ModerationPlugin.getInstance(), () -> {
+                    if (ModerationPlugin.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
+                        ComponentBuilder message = new ComponentBuilder(Style.INFO + "Player " + Style.INFO_STRESSED + event.getPlayer().getName()
+                                + Style.INFO + " joined and was put on Watchlist because he's an "+reason);
+                        ProxyServer.getInstance().getPlayers().stream()
+                                .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
+                                .forEach(moderator -> ModerationPlugin.sendInfo(moderator, message));
+                    }
+                    if (ModerationPlugin.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
+                        String discordChannel = ModerationPlugin.getConfig().getWatchlistDiscordChannel();
+                        DiscordUtil.sendDiscord(discordChannel, "Player **" + event.getPlayer().getName()
+                                                + "** joined the server and was put on Watchlist because he's an "+reason,
+                                ModerationPlugin.getConfig().isWatchlistPingModerators());
+                    }
+                }, 5, TimeUnit.SECONDS);
+            }
         }
     }
 }

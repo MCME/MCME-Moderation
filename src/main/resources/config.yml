@@ -3,12 +3,12 @@ report:
   sendDiscord: true
   discordChannel: reports
   discordRole: Moderator
-  pingModerators: false
+  pingModerators: true
   addToWatchlist: true
 watchlist:
   playerJoinNotification:
     sendIngame: true
     sendDiscord: true
-    discordChannel: reports
-    pingModerators: false
+  discordChannel: reports
+  pingModerators: true
   tabListPrefix: "#ff8866W"
