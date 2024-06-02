@@ -1,7 +1,7 @@
 name: ${project.artifactId}
-main: com.mcmiddleearth.moderation.ModerationPlugin
+main: com.mcmiddleearth.moderation.bungee.ModerationPluginBungee
 version: ${project.version}
-author: Eriol_Eandur
+author: ${project.properties.author}
 
 commands:
   watchlist:
