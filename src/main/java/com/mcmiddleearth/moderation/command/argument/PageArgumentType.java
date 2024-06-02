@@ -16,7 +16,6 @@
  */
 package com.mcmiddleearth.moderation.command.argument;
 
-import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -25,15 +24,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * @author Eriol_Eandur
@@ -57,7 +52,7 @@ public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgument
             if(page>0) {
                 return page;
             }
-        } catch(NumberFormatException ex){}
+        } catch(NumberFormatException ignore){}
         throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of PageArgument")),
                 new LiteralMessage("Page must be an integer > 0"));
     }

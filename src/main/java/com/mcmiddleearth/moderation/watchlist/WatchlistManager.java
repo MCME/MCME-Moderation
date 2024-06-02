@@ -20,11 +20,14 @@ import com.mcmiddleearth.moderation.ModerationPlugin;
 import com.mcmiddleearth.moderation.Permission;
 import com.mcmiddleearth.moderation.configuration.YamlBridge;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.io.File;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.*;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +64,11 @@ public class WatchlistManager {
      */
     public boolean isOnWatchlist(String name) {
         return watchlist.keySet().stream().anyMatch(key -> key.equalsIgnoreCase(name));
+    }
+
+    public boolean hasWatchedIp(ProxiedPlayer player) {
+        return watchlist.values().stream().anyMatch(playerData -> !playerData.getIp().equals("unknown")
+                                                                   && playerData.getIp().equals(getIp(player.getUniqueId())));
     }
 
     /**
@@ -157,27 +165,62 @@ public class WatchlistManager {
                                                .map(Map.Entry::getValue).findFirst().orElse(null);
     }
 
+    public String getIp(UUID uuid) {
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(uuid);
+        if(player != null) {
+            SocketAddress address =player.getSocketAddress();
+            if(address instanceof InetSocketAddress) {
+               InetAddress inetAddress = ((InetSocketAddress)address).getAddress();
+               if(inetAddress!=null) {
+                   return inetAddress.getHostAddress();
+               }
+            } //if(address instanceof UnixDomainSocketAddress) {
+        }
+        return null;
+    }
+
     public void addWatchlist(String addPlayer, CommandSender commandSender, String reason) {
-        WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,commandSender.getName(),addPlayer,
-                                                              commandSender.hasPermission(Permission.ADD_WATCHLIST));
+        String initiator = (commandSender!=null?commandSender.getName():"plugin");
+        boolean byModerator = commandSender == null || commandSender.hasPermission(Permission.ADD_WATCHLIST);
+        WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,initiator,addPlayer,byModerator);
         WatchlistPlayerData data = watchlist.get(addPlayer);
+        UUID uuid = getUUID(addPlayer);
+        String ip = getIp(uuid);
         if(data != null) {
             data.addReason(watchlistReason);
+            data.setIp(ip);
         } else {
-            UUID uuid = getUUID(addPlayer);
-            data = new WatchlistPlayerData(uuid,watchlistReason);
+            data = new WatchlistPlayerData(uuid,ip,watchlistReason);
             watchlist.put(addPlayer,data);
         }
         saveToFile();
     }
 
     public void removeWatchlist(String removePlayer) {
+        //WatchlistPlayerData playerData = watchlist.get(removePlayer);
         watchlist.remove(removePlayer);
+        getWatchedAliases(removePlayer).forEach(alias -> watchlist.remove(getName(alias)));
         saveToFile();
     }
 
     public void removeWatchlistReason(String player, int i) {
         WatchlistPlayerData data = watchlist.get(player);
         data.getReasons().remove(i);
+    }
+
+    public Collection<WatchlistPlayerData> getWatchedAliases(String playerName) {
+        //WatchlistPlayerData playerData = watchlist.get(player);
+        ProxiedPlayer player = ProxyServer.getInstance().getPlayer(playerName);
+        if(player!=null) {
+            return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
+                            && watchlistPlayerData.getIp().equals(getIp(player.getUniqueId())))
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
+    public String getName(WatchlistPlayerData playerData) {
+        return watchlist.entrySet().stream().filter(entry -> entry.getValue().getUuid().equals(playerData.getUuid()))
+                .map(Map.Entry::getKey).findFirst().orElse(null);
     }
 }

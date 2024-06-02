@@ -18,7 +18,6 @@ package com.mcmiddleearth.moderation.watchlist;
 
 import java.text.ParseException;
 import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * @author Eriol_Eandur
@@ -32,10 +31,16 @@ public class WatchlistPlayerData {
 
     private UUID uuid;
 
-    private List<WatchlistReason> reasons = new ArrayList<>();
+    private String ip;
 
-    public WatchlistPlayerData(UUID uuid, WatchlistReason reason) {
+    private final List<WatchlistReason> reasons = new ArrayList<>();
+
+    public WatchlistPlayerData(UUID uuid, String ip, WatchlistReason reason) {
         this.uuid = (uuid != null ? uuid : unknownUuid);
+        if(ip == null) {
+            ip = "unknown";
+        }
+        this.ip = ip;
         reasons.add(reason);
     }
 
@@ -47,6 +52,10 @@ public class WatchlistPlayerData {
     public WatchlistPlayerData(Map<String, Object> data) {
         uuid = UUID.fromString((String)data.get("uuid"));
         nameUnknown = (boolean) data.get("nameUnknown");
+        ip = (String) data.get("ip");
+        if(ip == null) {
+            ip = "unknown";
+        }
         List<Map<String,Object>> reasonData = (List<Map<String,Object>>) data.get("reasons");
         reasonData.forEach(reason -> {
             try {
@@ -69,6 +78,14 @@ public class WatchlistPlayerData {
         return uuid.equals(unknownUuid);
     }
 
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
     public void setUuid(UUID uuid) {
         if (this.uuid.equals(unknownUuid) && uuid != null) {
             this.uuid = uuid;
@@ -84,7 +101,7 @@ public class WatchlistPlayerData {
     /**
      * Required to save data to watchlist.yml
      *
-     * @return
+     * @return Map of WatchlistPlayerData
      */
     public Map<String, Object> serialize() {
         Map<String, Object> result = new HashMap<>();
@@ -93,6 +110,7 @@ public class WatchlistPlayerData {
         reasons.forEach(reason -> reasonData.add(reason.serialize()));
         result.put("reasons", reasonData);
         result.put("nameUnknown",nameUnknown);
+        result.put("ip",ip);
         return result;
     }
 

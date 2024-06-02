@@ -39,14 +39,14 @@ public class WatchlistReason {
 
     private final String nameAtCreationTime;
 
-    private final static String dateFormatPattern = "EEE, MMM d, yy, h:mm:ss a";
+    //private final static String dateFormatPattern = "EEE, MMM d, yy, h:mm:ss a";
 
     /**
      * Constructor for new WatchlistReasons
-     * @param creationTime
-     * @param description
-     * @param initiator
-     * @param byModerator
+     * @param creationTime Time when this watchlist reason was created
+     * @param description description of this watchlist reason
+     * @param initiator initiator of this watchlist reason
+     * @param byModerator if this reason was created by a moderator (or a /report command)
      */
     public WatchlistReason(Date creationTime, String description, String initiator, String nameAtCreationTime, boolean byModerator) {
         this.creationTime = creationTime;
@@ -87,7 +87,7 @@ public class WatchlistReason {
 
     /**
      * Required to save data to watchlist.yml
-     * @return
+     * @return Map of WatchlistReason
      */
     public Map<String,Object> serialize() {
         Map<String,Object> result = new HashMap<>();

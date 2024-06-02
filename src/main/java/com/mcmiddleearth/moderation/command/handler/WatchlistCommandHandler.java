@@ -39,10 +39,7 @@ import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 
 import java.text.DateFormat;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.IntegerArgumentType.integer;
@@ -176,6 +173,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
             for (int i = (page-1) * 10; i < Math.min((page-1) * 10 + 10, displayList.size()); i++) {
 //Logger.getGlobal().info("Count: "+i);
                 String name = displayList.get(i).getKey();
+                UUID uuid = displayList.get(i).getValue().getUuid();
                 ChatColor color = Style.MOD;
                 if (displayList.get(i).getValue().isUuidUnknown()) {
                     name = name + " (unconfirmed)";
@@ -186,7 +184,8 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                 builder.append("\n- ").color(Style.INFO)
                         .append(name).color(color).event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/watchlist " + displayList.get(i).getKey()))
                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(new ComponentBuilder("Click for details.")
-                                .color(Style.TOOLTIP).create())));
+                                .color(Style.TOOLTIP).create())))
+                        .append(" "+(uuid!=null?uuid.toString():"unknown UUID")).color(Style.INFO);
             }
         } else {
             builder.append("\n- no Players - ").color(Style.INFO);

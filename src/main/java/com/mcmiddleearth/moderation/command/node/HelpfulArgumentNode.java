@@ -1,6 +1,5 @@
 package com.mcmiddleearth.moderation.command.node;
 
-import com.mcmiddleearth.moderation.command.argument.HelpfulArgumentType;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.RedirectModifier;
 import com.mojang.brigadier.arguments.ArgumentType;
