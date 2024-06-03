@@ -9,16 +9,8 @@ public interface ModerationPlayer extends ModerationCommandSender {
 
     public void sendDataToBackend(String channel, byte[] data, boolean queue);
 
-    String getName();
-
-    boolean hasPermission(String permissionNode);
-
     UUID getUniqueId();
 
     SocketAddress getSocketAddress();
-
-    void sendInfo(Component message);
-    void sendError(Component message);
-
 
 }

@@ -2,19 +2,19 @@ package com.mcmiddleearth.moderation.bungee.command.builder;
 
 import com.mcmiddleearth.moderation.bungee.command.argument.HelpfulArgumentType;
 import com.mcmiddleearth.moderation.bungee.command.node.HelpfulArgumentNode;
+import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import com.mojang.brigadier.tree.CommandNode;
-import net.md_5.bungee.api.CommandSender;
 
-public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSender, HelpfulRequiredArgumentBuilder<T>> {
+public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<ModerationCommandSender, HelpfulRequiredArgumentBuilder<T>> {
     private String helpText;
     private String tooltip;
     private final String name;
     private final ArgumentType<T> type;
-    private SuggestionProvider<CommandSender> suggestionsProvider = null;
+    private SuggestionProvider<ModerationCommandSender> suggestionsProvider = null;
 
     private HelpfulRequiredArgumentBuilder(final String name, final ArgumentType<T> type) {
         this.name = name;
@@ -35,7 +35,7 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
         return new HelpfulRequiredArgumentBuilder<>(name, type);
     }
 
-    public HelpfulRequiredArgumentBuilder<T> suggests(final SuggestionProvider<CommandSender> provider) {
+    public HelpfulRequiredArgumentBuilder<T> suggests(final SuggestionProvider<ModerationCommandSender> provider) {
         this.suggestionsProvider = provider;
         return getThis();
     }
@@ -65,7 +65,7 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
         return getThis();
     }
 
-    public SuggestionProvider<CommandSender> getSuggestionsProvider() {
+    public SuggestionProvider<ModerationCommandSender> getSuggestionsProvider() {
         return suggestionsProvider;
     }
 
@@ -82,12 +82,12 @@ public class HelpfulRequiredArgumentBuilder<T> extends ArgumentBuilder<CommandSe
         return name;
     }
 
-    public ArgumentCommandNode<CommandSender, T> build() {
-        final ArgumentCommandNode<CommandSender, T> result = new HelpfulArgumentNode<>(getName(), getType(), getCommand(),
+    public ArgumentCommandNode<ModerationCommandSender, T> build() {
+        final ArgumentCommandNode<ModerationCommandSender, T> result = new HelpfulArgumentNode<>(getName(), getType(), getCommand(),
                                                                     getRequirement(), getRedirect(), getRedirectModifier(),
                                                                     isFork(), getSuggestionsProvider(), helpText, tooltip);
 
-        for (final CommandNode<CommandSender> argument : getArguments()) {
+        for (final CommandNode<ModerationCommandSender> argument : getArguments()) {
             result.addChild(argument);
         }
 

@@ -4,7 +4,6 @@ import com.mcmiddleearth.moderation.bungee.command.node.HelpfulLiteralNode;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;
-import net.md_5.bungee.api.CommandSender;
 
 public class HelpfulLiteralBuilder extends LiteralArgumentBuilder<ModerationCommandSender> {
 

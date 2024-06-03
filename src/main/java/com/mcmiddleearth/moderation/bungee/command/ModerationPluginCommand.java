@@ -1,6 +1,7 @@
 package com.mcmiddleearth.moderation.bungee.command;
 
 import com.google.common.base.Joiner;
+import com.mcmiddleearth.moderation.bungee.ModerationCommandSenderBungee;
 import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
 import com.mcmiddleearth.moderation.bungee.Style;
 import com.mcmiddleearth.moderation.bungee.command.handler.AbstractCommandHandler;
@@ -13,11 +14,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Command;
 
@@ -37,7 +40,8 @@ public class ModerationPluginCommand extends Command {
     }
 
     @Override
-    public void execute(ModerationCommandSender sender, String[] args) {
+    public void execute(CommandSender commandSender, String[] args) {
+        ModerationCommandSender sender = new ModerationCommandSenderBungee(commandSender);
         try {
 //CommandNode<ModerationCommandSender> node = dispatcher.getRoot();
 //printTree(node);
@@ -46,22 +50,22 @@ public class ModerationPluginCommand extends Command {
 //Logger.getGlobal().info("nodes "+result.getContext().getNodes().size());
 //Logger.getGlobal().info("Parsed");
             result.getExceptions().entrySet().stream()
-                    .findFirst().ifPresent(error -> sender.sendMessage(new ComponentBuilder(error.getValue().getMessage())
+                    .findFirst().ifPresent(error -> sender.sendError(Component.text(error.getValue().getMessage())
                     .color(Style.ERROR).create()));
             if(result.getExceptions().isEmpty()) {
                 if(result.getContext().getNodes().size() > 0
                         && (result.getContext().getCommand()==null
                             || result.getContext().getRange().getEnd() < result.getReader().getString().length())) {
                     //check for possible child nodes to collect suggestions and bake better error message
-                    ComponentBuilder helpMessage;
+                    TextComponent helpMessage;
                     boolean help = false;
                     String parsedCommand = "/" + result.getReader().getString()
                             .substring(0, result.getContext().getRange().getEnd());
                     if(result.getReader().getRemaining().trim().equals("help")){
-                        helpMessage = new ComponentBuilder("Help for command "+parsedCommand+":").color(Style.INFO);
+                        helpMessage = Component.text("Help for command "+parsedCommand+":").color(Style.INFO);
                         help = true;
                     } else {
-                        helpMessage = new ComponentBuilder("Invalid command syntax.").color(Style.ERROR);
+                        helpMessage = Component.text("Invalid command syntax.").color(Style.ERROR);
                     }
                     CommandNode<ModerationCommandSender> parsedNode = result.getContext().getNodes().get(result.getContext().getNodes().size() - 1).getNode();
 //Logger.getGlobal().info("Parsed Node:");
@@ -71,13 +75,13 @@ public class ModerationPluginCommand extends Command {
                     Map<CommandNode<ModerationCommandSender>,String> use = commandDispatcher.getSmartUsage(parsedNode,result.getContext().getSource());
                     if (children.isEmpty()) {
                         if (result.getContext().getCommand() == null) {
-                            helpMessage.append(" Maybe you don't have permission.");
+                            helpMessage = helpMessage.append(Component.text(" Maybe you don't have permission."));
                         } else if(!help) {
-                            helpMessage.append(" Maybe you want to do:\n").append(parsedCommand).color(Style.INFO);
+                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:\n")).append(parsedCommand).color(Style.INFO);
                         }
                     } else {
                         if(!help) {
-                            helpMessage.append(" Maybe you want to do:");
+                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:"));
                         }
                         for(Map.Entry<CommandNode<ModerationCommandSender>,String> entry: use.entrySet()) {
                             String usageMessage = "";
@@ -106,7 +110,7 @@ public class ModerationPluginCommand extends Command {
                             CommandNode<ModerationCommandSender> lastNode = parsedNode;
                             for(String possibleNode: possibleNodes) {
 //Logger.getLogger(ModerationPluginCommand.class.getSimpleName()).info("possible node "+possibleNode);
-                                helpMessage.append(" "+possibleNode);
+                                helpmessage = helpMessage.append(Component.text(" "+possibleNode));
                                 CommandNode<ModerationCommandSender> temp = node;
                                 node = findDirectChild(node, possibleNode.replaceAll("[()\\[\\]<>]",""));
                                 if(node==null) {
@@ -134,16 +138,16 @@ public class ModerationPluginCommand extends Command {
                             }
                         }
                     }
-                    ModerationPluginBungee.sendInfo(sender,helpMessage);
+                    sender.sendInfo(helpMessage);
                 } else if(result.getContext().getCommand() == null) {
-                    ModerationPluginBungee.sendError(sender,new ComponentBuilder("Invalid command. Maybe you don't have permission.")
+                    sender.sendError(Component.text("Invalid command. Maybe you don't have permission.")
                             .color(ChatColor.RED));
                 } else {
                     commandDispatcher.execute(result);
                 }
             }
         } catch (CommandSyntaxException e) {
-            ModerationPluginBungee.sendError(sender,new ComponentBuilder("Internal command parser exception!")
+            sender.sendError(Component.text("Internal command parser exception!")
                     .color(ChatColor.RED));
         }
     }
@@ -151,7 +155,8 @@ public class ModerationPluginCommand extends Command {
     public void onTabComplete(TabCompleteEvent event) {
         if (event.getSender() instanceof ModerationCommandSender) {
             try {
-                ParseResults<ModerationCommandSender> result = commandDispatcher.parse(event.getCursor().substring(1), (ProxiedPlayer) event.getSender());
+                ParseResults<ModerationCommandSender> result = commandDispatcher.parse(event.getCursor().substring(1),
+                                            new ModerationCommandSenderBungee((CommandSender)event.getSender()));
                 if(result.getContext().getNodes().isEmpty()) {
                     return;
                 }

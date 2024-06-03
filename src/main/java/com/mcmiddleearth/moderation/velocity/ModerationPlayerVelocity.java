@@ -2,12 +2,11 @@ package com.mcmiddleearth.moderation.velocity;
 
 import com.mcmiddleearth.moderation.core.ModerationPlayer;
 import com.velocitypowered.api.proxy.Player;
-import net.kyori.adventure.text.Component;
 
 import java.net.SocketAddress;
 import java.util.UUID;
 
-public class ModerationPlayerVelocity implements ModerationPlayer {
+public class ModerationPlayerVelocity extends ModerationCommandSenderVelocity implements ModerationPlayer {
 
     private final Player player;
 
@@ -26,11 +25,6 @@ public class ModerationPlayerVelocity implements ModerationPlayer {
     }
 
     @Override
-    public boolean hasPermission(String permissionNode) {
-        return player.hasPermission(permissionNode);
-    }
-
-    @Override
     public UUID getUniqueId() {
         return player.getUniqueId();
     }
@@ -40,13 +34,4 @@ public class ModerationPlayerVelocity implements ModerationPlayer {
         return player.getRemoteAddress();
     }
 
-    @Override
-    public void sendInfo(Component message) {
-
-    }
-
-    @Override
-    public void sendError(Component message) {
-
-    }
 }

@@ -19,16 +19,14 @@ package com.mcmiddleearth.moderation.bungee;
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommand;
 import com.mcmiddleearth.moderation.bungee.command.handler.ReportCommandHandler;
 import com.mcmiddleearth.moderation.bungee.command.handler.WatchlistCommandHandler;
-import com.mcmiddleearth.moderation.core.ModerationPlayer;
+import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
+import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.configuration.ModerationConfig;
-import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
-import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -55,7 +53,7 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
     private static ModerationConfig config;
     private static File configFile;
 
-    private final CommandDispatcher<CommandSender> commandDispatcher = new CommandDispatcher<>();
+    private final CommandDispatcher<ModerationCommandSender> commandDispatcher = new CommandDispatcher<>();
     private final Set<ModerationPluginCommand> commands = new HashSet<>();
 
     private static WatchlistManager watchlistManager;

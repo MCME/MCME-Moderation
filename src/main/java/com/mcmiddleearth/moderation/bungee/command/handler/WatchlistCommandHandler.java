@@ -17,10 +17,6 @@
 package com.mcmiddleearth.moderation.bungee.command.handler;
 
 
-import com.mcmiddleearth.moderation.bungee.ModerationPlayerBungee;
-import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
-import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.bungee.Style;
 import com.mcmiddleearth.moderation.bungee.command.argument.KnownPlayerArgumentType;
 import com.mcmiddleearth.moderation.bungee.command.argument.OfflinePlayerArgumentType;
@@ -28,18 +24,18 @@ import com.mcmiddleearth.moderation.bungee.command.argument.PageArgumentType;
 import com.mcmiddleearth.moderation.bungee.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.bungee.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.bungee.command.builder.HelpfulRequiredArgumentBuilder;
+import com.mcmiddleearth.moderation.core.ModerationCommandSender;
+import com.mcmiddleearth.moderation.core.ModerationProxy;
+import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistPlayerData;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistReason;
 import com.mojang.brigadier.CommandDispatcher;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.text.DateFormat;
 import java.util.*;
@@ -55,24 +51,24 @@ import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
 public class WatchlistCommandHandler extends AbstractCommandHandler {
 
-    public WatchlistCommandHandler(String name, CommandDispatcher<CommandSender> dispatcher) {
+    public WatchlistCommandHandler(String name, CommandDispatcher<ModerationCommandSender> dispatcher) {
         super(name);
         dispatcher
             .register(HelpfulLiteralBuilder.literal(name)
                 .withHelpText("Manage Moderation Watchlist.")
                 .withTooltip("Manage list of players who are being watched for possible moderation action.")
-                .requires(commandSender -> commandSender.hasPermission(Permission.WATCHLIST))
+                .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.WATCHLIST))
 
                 .then(HelpfulRequiredArgumentBuilder.argument("player", new KnownPlayerArgumentType())
                     .withHelpText("Watchlist details about a player.")
                     .withTooltip("Name of player to see details about.")
-                    .requires(commandSender -> commandSender.hasPermission(Permission.SEE_WATCHLIST))
+                    .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.SEE_WATCHLIST))
                     .executes(context -> viewDetails(context.getSource(), context.getArgument("player",String.class))))
 
                 .then(HelpfulLiteralBuilder.literal("list")
                     .withHelpText("See players on watchlist")
                     .withTooltip("Get a list of all or a group of players on the watchlist")
-                    .requires(commandSender -> commandSender.hasPermission(Permission.SEE_WATCHLIST))
+                    .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.SEE_WATCHLIST))
                     .executes(context -> viewList(context.getSource(), "all", 1))
 
                     .then(HelpfulRequiredArgumentBuilder.argument(("page"),
@@ -95,7 +91,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                 .then(HelpfulLiteralBuilder.literal("add")
                         .withHelpText("Add a player to watchlist")
                         .withTooltip("Add a player to watchlist and give a reason why he should be watched. You can also add more reasons to a player already on the list.")
-                        .requires(commandSender -> commandSender.hasPermission(Permission.ADD_WATCHLIST))
+                        .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.ADD_WATCHLIST))
 
                         .then(HelpfulRequiredArgumentBuilder.argument("player", new OfflinePlayerArgumentType())
                                 .withTooltip("Name of player to add to watchlist")
@@ -107,7 +103,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                 .then(HelpfulLiteralBuilder.literal("remove")
                         .withHelpText("Remove from watchlist")
                         .withTooltip("Removes a reason from a player or a player entirely from watchlist.")
-                        .requires(commandSender -> commandSender.hasPermission(Permission.REMOVE_WATCHLIST))
+                        .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.REMOVE_WATCHLIST))
 
                         .then(HelpfulRequiredArgumentBuilder.argument("player", new KnownPlayerArgumentType())
                                 .withTooltip("Name of player to remove from watchlist")
@@ -119,8 +115,8 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                                                                                           context.getArgument("reason",Integer.class)))))));
     }
 
-    private int viewDetails(CommandSender commandSender, String showPlayer) {
-        WatchlistPlayerData data = ModerationPluginBungee.getWatchlistManager().getWatchlistData(showPlayer);
+    private int viewDetails(ModerationCommandSender commandSender, String showPlayer) {
+        WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(showPlayer);
         if(data != null) {
             StringBuilder message = new StringBuilder("Watchlist reasons for " + Style.INFO_STRESSED + showPlayer + Style.INFO+":");
             for(int i = 0; i < data.getReasons().size(); i++) {
@@ -132,14 +128,14 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                     message.append(Style.WARNING+" (player name at time of report: "+reason.getNameAtCreationTime()+")");
                 }
             }
-            ModerationPluginBungee.sendInfo(commandSender,new ComponentBuilder(message.toString()));
+            commandSender.sendInfo(new ComponentBuilder(message.toString()));
         } else {
-            ModerationPluginBungee.sendError(commandSender,new ComponentBuilder("Player not on watchlist!"));
+            commandSender.sendError(new ComponentBuilder("Player not on watchlist!"));
         }
         return 0;
     }
 
-    private int viewList(CommandSender commandSender, String group, Integer page) {
+    private int viewList(ModerationCommandSender commandSender, String group, Integer page) {
         List<Map.Entry<String,WatchlistPlayerData>> displayList = getWatchlistSelection(group);
         String message;
         if(group.equals("all")) {
@@ -193,18 +189,18 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         } else {
             builder.append("\n- no Players - ").color(Style.INFO);
         }
-        ModerationPluginBungee.sendInfo(commandSender,builder);
+        commandSender.sendInfo(builder);
         return 0;
     }
 
     private List<Map.Entry<String, WatchlistPlayerData>> getWatchlistSelection(String selection) {
-        Map<String,WatchlistPlayerData> watchlist = ModerationPluginBungee.getWatchlistManager().getWatchlist();
+        Map<String,WatchlistPlayerData> watchlist = ModerationProxy.getPlugin().getWatchlistManager().getWatchlist();
         List<Map.Entry<String,WatchlistPlayerData>> selectionList;
         if(selection.equals("all")) {
             selectionList = watchlist.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
         } else {
             if(selection.equals("online")) {
-                selectionList = watchlist.entrySet().stream().filter(entry -> ProxyServer.getInstance().getPlayer(entry.getKey())!=null)
+                selectionList = watchlist.entrySet().stream().filter(entry -> ModerationProxy.getInstance().getPlayer(entry.getKey())!=null)
                         .sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
             } else {
                 selectionList = watchlist.entrySet().stream().filter(entry -> entry.getKey().toLowerCase().contains(selection.toLowerCase()))
@@ -214,16 +210,16 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         return selectionList;
     }
 
-    private int addPlayer(CommandSender commandSender, String addPlayer, String reason) {
-        ModerationPluginBungee.getWatchlistManager().addWatchlist(addPlayer, new ModerationPlayerBungee((ProxiedPlayer) commandSender), reason);
-        ModerationPluginBungee.sendInfo(commandSender,new ComponentBuilder("Added "+Style.INFO_STRESSED+addPlayer
+    private int addPlayer(ModerationCommandSender commandSender, String addPlayer, String reason) {
+        ModerationProxy.getPlugin().getWatchlistManager().addWatchlist(addPlayer, commandSender, reason);
+        commandSender.sendInfo(new ComponentBuilder("Added "+Style.INFO_STRESSED+addPlayer
                                                                      +Style.INFO+" to watchlist for '"+reason+"'"));
         ComponentBuilder message = new ComponentBuilder(commandSender.getName()+" added "+Style.INFO_STRESSED+addPlayer
                                                                      +Style.INFO+" to watchlist for '"+reason+"'");
         if(ModerationProxy.getPlugin().getConfig().isWatchlistSendIngame()) {
-            ProxyServer.getInstance().getPlayers().stream()
+            ModerationProxy.getInstance().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST) && !moderator.equals(commandSender))
-                    .forEach(moderator -> ModerationPluginBungee.sendInfo(moderator,message));
+                    .forEach(moderator -> moderator.sendInfo(message));
         }
         if(ModerationProxy.getPlugin().getConfig().isWatchlistSendDiscord()) {
             String discordChannel = ModerationProxy.getPlugin().getConfig().getWatchlistDiscordChannel();
@@ -233,33 +229,33 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         return 0;
     }
 
-    private int removePlayer(CommandSender commandSender, String removePlayer) {
-        WatchlistPlayerData data = ModerationPluginBungee.getWatchlistManager().getWatchlistData(removePlayer);
+    private int removePlayer(ModerationCommandSender commandSender, String removePlayer) {
+        WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(removePlayer);
         if(data != null) {
-            ModerationPluginBungee.getWatchlistManager().removeWatchlist(removePlayer);
-            ModerationPluginBungee.sendInfo(commandSender, new ComponentBuilder("Removed " + Style.INFO_STRESSED + removePlayer + Style.INFO + " from watchlist."));
+            ModerationProxy.getPlugin().getWatchlistManager().removeWatchlist(removePlayer);
+            commandSender.sendInfo(new ComponentBuilder("Removed " + Style.INFO_STRESSED + removePlayer + Style.INFO + " from watchlist."));
         } else {
-            ModerationPluginBungee.sendError(commandSender,new ComponentBuilder("Player not on watchlist!"));
+            commandSender.sendError(new ComponentBuilder("Player not on watchlist!"));
         }
         return 0;
     }
 
-    private int removeReason(CommandSender commandSender, String player, Integer reason) {
-        WatchlistPlayerData data = ModerationPluginBungee.getWatchlistManager().getWatchlistData(player);
+    private int removeReason(ModerationCommandSender commandSender, String player, Integer reason) {
+        WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(player);
         if(data != null) {
             if (reason > data.getReasons().size()) {
-                ModerationPluginBungee.sendError(commandSender, new ComponentBuilder("Player does not have that many reasons."));
+                commandSender.sendError(new ComponentBuilder("Player does not have that many reasons."));
             } else {
                 if(data.getReasons().size()>1) {
-                    ModerationPluginBungee.getWatchlistManager().removeWatchlistReason(player, reason - 1);
-                    ModerationPluginBungee.sendInfo(commandSender, new ComponentBuilder("Watchlist reason removed from player '" + player + "'."));
+                    ModerationProxy.getPlugin().getWatchlistManager().removeWatchlistReason(player, reason - 1);
+                    commandSender.sendInfo(new ComponentBuilder("Watchlist reason removed from player '" + player + "'."));
                 } else {
-                    ModerationPluginBungee.getWatchlistManager().removeWatchlist(player);
-                    ModerationPluginBungee.sendInfo(commandSender,new ComponentBuilder("Removed "+Style.INFO_STRESSED+player+Style.INFO+" from watchlist as you removed the last reason for him to be there."));
+                    ModerationProxy.getPlugin().getWatchlistManager().removeWatchlist(player);
+                    commandSender.sendInfo(new ComponentBuilder("Removed "+Style.INFO_STRESSED+player+Style.INFO+" from watchlist as you removed the last reason for him to be there."));
                 }
             }
         } else {
-            ModerationPluginBungee.sendError(commandSender,new ComponentBuilder("Player not on watchlist!"));
+            commandSender.sendError(new ComponentBuilder("Player not on watchlist!"));
         }
         return 0;
     }

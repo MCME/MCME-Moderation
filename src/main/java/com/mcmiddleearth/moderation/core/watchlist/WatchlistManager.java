@@ -18,6 +18,7 @@ package com.mcmiddleearth.moderation.core.watchlist;
 
 import com.google.common.base.Joiner;
 import com.mcmiddleearth.moderation.bungee.Style;
+import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlayer;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
@@ -183,7 +184,7 @@ public class WatchlistManager {
         return null;
     }
 
-    public void addWatchlist(String addPlayer, ModerationPlayer sender, String reason) {
+    public void addWatchlist(String addPlayer, ModerationCommandSender sender, String reason) {
         String initiator = (sender!=null?sender.getName():"plugin");
         boolean byModerator = sender == null || sender.hasPermission(Permission.ADD_WATCHLIST);
         WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,initiator,addPlayer,byModerator);

@@ -16,21 +16,17 @@
  */
 package com.mcmiddleearth.moderation.bungee.command.handler;
 
-import com.mcmiddleearth.moderation.bungee.ModerationPlayerBungee;
-import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
-import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.bungee.Style;
 import com.mcmiddleearth.moderation.bungee.command.argument.OfflinePlayerArgumentType;
 import com.mcmiddleearth.moderation.bungee.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.bungee.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.bungee.command.builder.HelpfulRequiredArgumentBuilder;
+import com.mcmiddleearth.moderation.core.ModerationCommandSender;
+import com.mcmiddleearth.moderation.core.ModerationProxy;
+import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 import com.mojang.brigadier.CommandDispatcher;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 /**
  * @author Eriol_Eandur
@@ -57,26 +53,26 @@ public class ReportCommandHandler extends AbstractCommandHandler {
                                                         context.getArgument("reason", String.class))))));
     }
 
-    private int sendReport(ModerationCommandSender ModerationCommandSender, String player, String reason) {
-        ComponentBuilder message = new ComponentBuilder(ModerationCommandSender.getName()).color(Style.INFO_STRESSED)//.bold(true).italic(true)
+    private int sendReport(ModerationCommandSender commandSender, String player, String reason) {
+        ComponentBuilder message = new ComponentBuilder(commandSender.getName()).color(Style.INFO_STRESSED)//.bold(true).italic(true)
                 .append(" reported player ").color(Style.INFO)//.bold(false).italic(false)
                 .append(player).color(Style.INFO_STRESSED).bold(true).italic(true)
                 .append("\nReason: ").color(Style.INFO).bold(false).italic(false)
                 .append(reason).color(Style.HELP);//.bold(true).italic(true);
         if(ModerationProxy.getPlugin().getConfig().isReportSendIngame()) {
-            ProxyServer.getInstance().getPlayers().stream()
+            ModerationProxy.getInstance().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT))
-                    .forEach(moderator -> ModerationPluginBungee.sendInfo(moderator,message));
+                    .forEach(moderator -> moderator.sendInfo(message));
         }
         if(ModerationProxy.getPlugin().getConfig().isReportAddToWatchlist()) {
-            ModerationPluginBungee.getWatchlistManager().addWatchlist(player, new ModerationPlayerBungee((ProxiedPlayer) ModerationCommandSender), reason);
+            ModerationProxy.getPlugin().getWatchlistManager().addWatchlist(player, commandSender, reason);
         }
         if(ModerationProxy.getPlugin().getConfig().isReportSendDiscord()) {
             String discordChannel = ModerationProxy.getPlugin().getConfig().getReportDiscordChannel();
-            DiscordUtil.sendDiscord(discordChannel,"**"+ModerationCommandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**",
+            DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**",
                     ModerationProxy.getPlugin().getConfig().isReportPingModerators());
         }
-        ModerationPluginBungee.sendInfo(ModerationCommandSender,new ComponentBuilder("Your report has been sent to the moderation team."));
+        commandSender.sendInfo(new ComponentBuilder("Your report has been sent to the moderation team."));
         return 0;
     }
 
