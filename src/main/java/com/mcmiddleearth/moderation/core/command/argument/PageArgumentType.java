@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.mcmiddleearth.moderation.bungee.command.argument;
+package com.mcmiddleearth.moderation.core.command.argument;
 
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;

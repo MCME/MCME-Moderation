@@ -1,12 +1,10 @@
-package com.mcmiddleearth.moderation.bungee.command;
+package com.mcmiddleearth.moderation.core.command;
 
 import com.google.common.base.Joiner;
-import com.mcmiddleearth.moderation.bungee.ModerationCommandSenderBungee;
 import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
-import com.mcmiddleearth.moderation.bungee.Style;
-import com.mcmiddleearth.moderation.bungee.command.handler.AbstractCommandHandler;
-import com.mcmiddleearth.moderation.bungee.command.node.HelpfulNode;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
+import com.mcmiddleearth.moderation.core.Style;
+import com.mcmiddleearth.moderation.core.command.node.HelpfulNode;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
 import com.mojang.brigadier.context.ParsedCommandNode;
@@ -16,13 +14,8 @@ import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.CommandSender;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.hover.content.Text;
-import net.md_5.bungee.api.event.TabCompleteEvent;
-import net.md_5.bungee.api.plugin.Command;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -30,32 +23,29 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ModerationPluginCommand extends Command {
+public class ModerationPluginCommand {
 
     private final CommandDispatcher<ModerationCommandSender> commandDispatcher;
 
-    public ModerationPluginCommand(CommandDispatcher<ModerationCommandSender> commandDispatcher, AbstractCommandHandler handler) {
-        super(handler.getCommand());
+    public ModerationPluginCommand(CommandDispatcher<ModerationCommandSender> commandDispatcher) {
         this.commandDispatcher = commandDispatcher;
     }
 
-    @Override
-    public void execute(CommandSender commandSender, String[] args) {
-        ModerationCommandSender sender = new ModerationCommandSenderBungee(commandSender);
+    public void execute(ModerationCommandSender sender, String name, String[] args) {
         try {
 //CommandNode<ModerationCommandSender> node = dispatcher.getRoot();
 //printTree(node);
-            String message = String.format("%s %s", getName(), Joiner.on(' ').join(args)).trim();
+            String message = String.format("%s %s", name, Joiner.on(' ').join(args)).trim();
             ParseResults<ModerationCommandSender> result = commandDispatcher.parse(message, sender);
 //Logger.getGlobal().info("nodes "+result.getContext().getNodes().size());
 //Logger.getGlobal().info("Parsed");
             result.getExceptions().entrySet().stream()
                     .findFirst().ifPresent(error -> sender.sendError(Component.text(error.getValue().getMessage())
-                    .color(Style.ERROR).create()));
+                            .color(Style.ERROR)));
             if(result.getExceptions().isEmpty()) {
                 if(result.getContext().getNodes().size() > 0
                         && (result.getContext().getCommand()==null
-                            || result.getContext().getRange().getEnd() < result.getReader().getString().length())) {
+                        || result.getContext().getRange().getEnd() < result.getReader().getString().length())) {
                     //check for possible child nodes to collect suggestions and bake better error message
                     TextComponent helpMessage;
                     boolean help = false;
@@ -70,14 +60,14 @@ public class ModerationPluginCommand extends Command {
                     CommandNode<ModerationCommandSender> parsedNode = result.getContext().getNodes().get(result.getContext().getNodes().size() - 1).getNode();
 //Logger.getGlobal().info("Parsed Node:");
 //printTree(parsedNode);
-                    Collection<CommandNode<ModerationCommandSender>> children = (result.getContext().getNodes().isEmpty()?new ArrayList<>():parsedNode.getChildren()
-                            .stream().filter(node -> node.canUse(result.getContext().getSource())).collect(Collectors.toList()));
+                    Collection<CommandNode<ModerationCommandSender>> children = (result.getContext().getNodes().isEmpty()?new ArrayList<>(): parsedNode.getChildren()
+                            .stream().filter(node -> node.canUse(result.getContext().getSource())).toList());
                     Map<CommandNode<ModerationCommandSender>,String> use = commandDispatcher.getSmartUsage(parsedNode,result.getContext().getSource());
                     if (children.isEmpty()) {
                         if (result.getContext().getCommand() == null) {
                             helpMessage = helpMessage.append(Component.text(" Maybe you don't have permission."));
                         } else if(!help) {
-                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:\n")).append(parsedCommand).color(Style.INFO);
+                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:\n")).append(Component.text(parsedCommand).color(Style.INFO));
                         }
                     } else {
                         if(!help) {
@@ -85,32 +75,31 @@ public class ModerationPluginCommand extends Command {
                         }
                         for(Map.Entry<CommandNode<ModerationCommandSender>,String> entry: use.entrySet()) {
                             String usageMessage = "";
-                            helpMessage.append("\n").color(Style.INFO);
+                            helpMessage = helpMessage.append(Component.text("\n").color(Style.INFO));
                             String[] visitedNodes = parsedCommand.split(" ");
                             Iterator<ParsedCommandNode<ModerationCommandSender>> iterator = result.getContext().getNodes().listIterator();
                             for (String visitedNode : visitedNodes) {
-                                helpMessage.append(" "+visitedNode);
+                                helpMessage = helpMessage.append(Component.text(" "+visitedNode));
                                 ParsedCommandNode<ModerationCommandSender> node = iterator.next();
 //Logger.getGlobal().info("Visited Node:");
 //printTree(node.getNode());
-                                helpMessage.color((node.getNode() instanceof LiteralCommandNode?Style.LITERAL:Style.ARGUMENT));
+                                helpMessage = helpMessage.color((node.getNode() instanceof LiteralCommandNode ?Style.LITERAL:Style.ARGUMENT));
                                 if ((node.getNode() instanceof HelpfulNode)) {
-                                    helpMessage.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                            new Text(new ComponentBuilder(((HelpfulNode) node.getNode()).getTooltip())
-                                                    .color(Style.TOOLTIP).create())));
+                                    helpMessage = helpMessage.hoverEvent(HoverEvent
+                                            .showText(Component.text(((HelpfulNode) node.getNode()).getTooltip()).color(Style.TOOLTIP)));
                                     if(!((HelpfulNode) node.getNode()).getHelpText().equals("")) {
                                         usageMessage = ((HelpfulNode) node.getNode()).getHelpText();
                                     }
                                 } else {
-                                    helpMessage.event((HoverEvent)null);
+                                    helpMessage = helpMessage.hoverEvent(null);
                                 }
                             }
                             String[] possibleNodes = entry.getValue().replace('|', ' ').split(" ");
                             CommandNode<ModerationCommandSender> node = parsedNode;
                             CommandNode<ModerationCommandSender> lastNode = parsedNode;
                             for(String possibleNode: possibleNodes) {
-//Logger.getLogger(ModerationPluginCommand.class.getSimpleName()).info("possible node "+possibleNode);
-                                helpmessage = helpMessage.append(Component.text(" "+possibleNode));
+//Logger.getLogger(ModerationPluginCommandBungee.class.getSimpleName()).info("possible node "+possibleNode);
+                                helpMessage = helpMessage.append(Component.text(" "+possibleNode));
                                 CommandNode<ModerationCommandSender> temp = node;
                                 node = findDirectChild(node, possibleNode.replaceAll("[()\\[\\]<>]",""));
                                 if(node==null) {
@@ -120,70 +109,61 @@ public class ModerationPluginCommand extends Command {
                                 }
 //Logger.getGlobal().info("possible Node:");
 //printTree(node);
-                                helpMessage.color((node instanceof LiteralCommandNode?Style.LITERAL:Style.ARGUMENT));
+                                helpMessage = helpMessage.color((node instanceof LiteralCommandNode?Style.LITERAL:Style.ARGUMENT));
                                 if ((node instanceof HelpfulNode)) {
-                                    helpMessage.event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                            new Text(new ComponentBuilder(((HelpfulNode) node).getTooltip())
-                                                    .color(Style.TOOLTIP).create())));
+                                    helpMessage = helpMessage.hoverEvent(HoverEvent
+                                            .showText(Component.text(((HelpfulNode) node).getTooltip()).color(Style.TOOLTIP)));
                                     if(!((HelpfulNode) node).getHelpText().equals("")) {
                                         usageMessage = ((HelpfulNode) node).getHelpText();
                                     }
                                 } else {
-                                    helpMessage.event((HoverEvent) null);
+                                    helpMessage = helpMessage.hoverEvent(null);
                                 }
                             }
                             if(!usageMessage.equals("")) {
-                                helpMessage.append(" : "+usageMessage).color(Style.HELP)
-                                           .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT,new Text(new ComponentBuilder().create())));
+                                helpMessage = helpMessage.append(Component.text(" : "+usageMessage).color(Style.HELP))
+                                        .hoverEvent(HoverEvent.showText(Component.text(" ")));
                             }
                         }
                     }
                     sender.sendInfo(helpMessage);
                 } else if(result.getContext().getCommand() == null) {
                     sender.sendError(Component.text("Invalid command. Maybe you don't have permission.")
-                            .color(ChatColor.RED));
+                            .color(NamedTextColor.RED));
                 } else {
                     commandDispatcher.execute(result);
                 }
             }
         } catch (CommandSyntaxException e) {
             sender.sendError(Component.text("Internal command parser exception!")
-                    .color(ChatColor.RED));
+                    .color(NamedTextColor.RED));
         }
     }
 
-    public void onTabComplete(TabCompleteEvent event) {
-        if (event.getSender() instanceof ModerationCommandSender) {
-            try {
-                ParseResults<ModerationCommandSender> result = commandDispatcher.parse(event.getCursor().substring(1),
-                                            new ModerationCommandSenderBungee((CommandSender)event.getSender()));
-                if(result.getContext().getNodes().isEmpty()) {
-                    return;
-                }
-                List<Suggestion> completionSuggestions
-                        = commandDispatcher.getCompletionSuggestions(result).get().getList();
-                if(completionSuggestions.isEmpty()) {
-                    event.setCancelled(true);
-                } else {
-                    event.getSuggestions().addAll(completionSuggestions.stream().map(Suggestion::getText).collect(Collectors.toList()));
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                Logger.getLogger(ModerationPluginBungee.class.getSimpleName()).log(Level.WARNING,"Command tab complete error.",e);
+    public List<String> getSuggestions(ModerationCommandSender sender, String cursor) {
+        try {
+            ParseResults<ModerationCommandSender> result = commandDispatcher.parse(cursor,sender);
+            if(result.getContext().getNodes().isEmpty()) {
+                return Collections.emptyList();
             }
+            return commandDispatcher.getCompletionSuggestions(result).get().getList().stream().map(Suggestion::getText).toList();
+        } catch (InterruptedException | ExecutionException e) {
+            Logger.getLogger(ModerationPluginBungee.class.getSimpleName()).log(Level.WARNING,"Command tab complete error.",e);
         }
+        return Collections.emptyList();
     }
 
     private CommandNode<ModerationCommandSender> findDirectChild(CommandNode<ModerationCommandSender> root, String name) {
-//Logger.getLogger(ModerationPluginCommand.class.getSimpleName()).info("find node "+name);
+//Logger.getLogger(ModerationPluginCommandBungee.class.getSimpleName()).info("find node "+name);
         //if(root.getName().equals(name)) {
         //    return root;
         //} else {
-            for(CommandNode<ModerationCommandSender> node: root.getChildren()) {
-                //CommandNode<ModerationCommandSender> found = findNode(node,name);
-                if(node.getName().equals(name)) {//found != null) {
-                    return node;//found;
-                }
+        for(CommandNode<ModerationCommandSender> node: root.getChildren()) {
+            //CommandNode<ModerationCommandSender> found = findNode(node,name);
+            if(node.getName().equals(name)) {//found != null) {
+                return node;//found;
             }
+        }
         //}
         return null;
     }
@@ -206,4 +186,5 @@ public class ModerationPluginCommand extends Command {
         }
         return message;
     }
+
 }

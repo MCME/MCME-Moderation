@@ -1,6 +1,6 @@
-package com.mcmiddleearth.moderation.bungee.command.builder;
+package com.mcmiddleearth.moderation.core.command.builder;
 
-import com.mcmiddleearth.moderation.bungee.command.node.HelpfulLiteralNode;
+import com.mcmiddleearth.moderation.core.command.node.HelpfulLiteralNode;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.CommandNode;

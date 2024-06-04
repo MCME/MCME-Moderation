@@ -14,19 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.mcmiddleearth.moderation.bungee.command.handler;
+package com.mcmiddleearth.moderation.core.command.handler;
 
-import com.mcmiddleearth.moderation.bungee.Style;
-import com.mcmiddleearth.moderation.bungee.command.argument.OfflinePlayerArgumentType;
-import com.mcmiddleearth.moderation.bungee.command.argument.ReasonArgumentType;
-import com.mcmiddleearth.moderation.bungee.command.builder.HelpfulLiteralBuilder;
-import com.mcmiddleearth.moderation.bungee.command.builder.HelpfulRequiredArgumentBuilder;
+import com.mcmiddleearth.moderation.core.Style;
+import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
+import com.mcmiddleearth.moderation.core.command.argument.ReasonArgumentType;
+import com.mcmiddleearth.moderation.core.command.builder.HelpfulLiteralBuilder;
+import com.mcmiddleearth.moderation.core.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 import com.mojang.brigadier.CommandDispatcher;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 
 /**
  * @author Eriol_Eandur
@@ -34,13 +35,13 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class ReportCommandHandler extends AbstractCommandHandler {
 
-    public ReportCommandHandler(String name, CommandDispatcher<ModerationCommandSender> dispatcher) {
-        super(name);
+    public ReportCommandHandler(String name, String permission, CommandDispatcher<ModerationCommandSender> dispatcher) {
+        super(name, permission);
         dispatcher
             .register(HelpfulLiteralBuilder.literal(name)
                 .withHelpText("Report inappropriate behaviour!")
                 .withTooltip("Send a report to Moderators about inappropriate player behaviour.")
-                .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.SEND_REPORT))
+                .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(permission))
 
                 .then(HelpfulRequiredArgumentBuilder.argument("player", new OfflinePlayerArgumentType())
                     .withTooltip("Name of the player who misbehaved.")
@@ -54,11 +55,11 @@ public class ReportCommandHandler extends AbstractCommandHandler {
     }
 
     private int sendReport(ModerationCommandSender commandSender, String player, String reason) {
-        ComponentBuilder message = new ComponentBuilder(commandSender.getName()).color(Style.INFO_STRESSED)//.bold(true).italic(true)
-                .append(" reported player ").color(Style.INFO)//.bold(false).italic(false)
-                .append(player).color(Style.INFO_STRESSED).bold(true).italic(true)
-                .append("\nReason: ").color(Style.INFO).bold(false).italic(false)
-                .append(reason).color(Style.HELP);//.bold(true).italic(true);
+        Component message = Component.text(commandSender.getName()).color(Style.INFO_STRESSED)//.bold(true).italic(true)
+                .append(Component.text(" reported player ").color(Style.INFO))//.bold(false).italic(false)
+                .append(Component.text(player).color(Style.INFO_STRESSED).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
+                .append(Component.text("\nReason: ").color(Style.INFO).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
+                .append(Component.text(reason).color(Style.HELP));//.bold(true).italic(true);
         if(ModerationProxy.getPlugin().getConfig().isReportSendIngame()) {
             ModerationProxy.getInstance().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT))
@@ -72,7 +73,7 @@ public class ReportCommandHandler extends AbstractCommandHandler {
             DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**",
                     ModerationProxy.getPlugin().getConfig().isReportPingModerators());
         }
-        commandSender.sendInfo(new ComponentBuilder("Your report has been sent to the moderation team."));
+        commandSender.sendInfo(Component.text("Your report has been sent to the moderation team."));
         return 0;
     }
 

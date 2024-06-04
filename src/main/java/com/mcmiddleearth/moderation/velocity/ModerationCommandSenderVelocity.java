@@ -2,25 +2,29 @@ package com.mcmiddleearth.moderation.velocity;
 
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.velocitypowered.api.command.CommandSource;
-import net.kyori.adventure.text.Component;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.identity.Identity;
 
 public class ModerationCommandSenderVelocity implements ModerationCommandSender {
 
-    private CommandSource source;
+    private final CommandSource source;
+
+    public ModerationCommandSenderVelocity(CommandSource source) {
+        this.source = source;
+    }
 
     @Override
     public boolean hasPermission(String permissionNode) {
         return source.hasPermission(permissionNode);
     }
 
-
     @Override
-    public void sendInfo(Component message) {
-
+    public String getName() {
+        return source.pointers().getOrDefault(Identity.NAME,"Console");
     }
 
     @Override
-    public void sendError(Component message) {
-
+    public Audience getAudience() {
+        return source;
     }
 }

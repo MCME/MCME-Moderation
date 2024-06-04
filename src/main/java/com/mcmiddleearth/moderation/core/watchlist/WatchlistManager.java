@@ -17,7 +17,7 @@
 package com.mcmiddleearth.moderation.core.watchlist;
 
 import com.google.common.base.Joiner;
-import com.mcmiddleearth.moderation.bungee.Style;
+import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlayer;
 import com.mcmiddleearth.moderation.core.ModerationProxy;

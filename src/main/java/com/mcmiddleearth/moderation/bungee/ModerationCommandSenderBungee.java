@@ -1,16 +1,26 @@
 package com.mcmiddleearth.moderation.bungee;
 
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
-import net.kyori.adventure.text.Component;
+import com.mcmiddleearth.moderation.core.ModerationProxy;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 public class ModerationCommandSenderBungee implements ModerationCommandSender {
 
     private final CommandSender sender;
 
+    private final Audience audience;
+
     public ModerationCommandSenderBungee(CommandSender commandSender) {
         sender = commandSender;
         commandSender.getName();
+        if(commandSender instanceof ProxiedPlayer player) {
+            audience = ((BungeeAudiences)ModerationProxy.getPlugin().getAdventure()).player(player);
+        } else {
+            audience = ModerationProxy.getPlugin().getAdventure().console();
+        }
     }
 
     @Override
@@ -18,24 +28,14 @@ public class ModerationCommandSenderBungee implements ModerationCommandSender {
         return sender.getName();
     }
 
+    @Override
+    public Audience getAudience() {
+        return audience;
+    }
 
     @Override
     public boolean hasPermission(String permissionNode) {
         return sender.hasPermission(permissionNode);
-    }
-
-    @Override
-    public void sendInfo(Component message) {
-        Component result = Component.text("[Mod]").color(Style.MOD).append(" ").color(Style.INFO);
-        result = result.append(message);
-        sender.sendMessage(result);
-    }
-
-    @Override
-    public void sendError(Component message) {
-        Component result = Component.text("[Mod]").color(Style.MOD).append(" ").color(Style.ERROR);
-        result = result.append(message);
-        sender.sendMessage(result);
     }
 
     public CommandSender getBungeeCommandSender() {

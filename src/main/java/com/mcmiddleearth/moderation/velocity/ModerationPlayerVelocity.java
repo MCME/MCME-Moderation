@@ -11,6 +11,7 @@ public class ModerationPlayerVelocity extends ModerationCommandSenderVelocity im
     private final Player player;
 
     public ModerationPlayerVelocity(Player player) {
+        super(player);
         this.player = player;
     }
 

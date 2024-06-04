@@ -1,4 +1,4 @@
-package com.mcmiddleearth.moderation.bungee.command.node;
+package com.mcmiddleearth.moderation.core.command.node;
 
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mojang.brigadier.Command;

@@ -1,4 +1,4 @@
-package com.mcmiddleearth.moderation.bungee.command.argument;
+package com.mcmiddleearth.moderation.core.command.argument;
 
 public interface HelpfulArgumentType {
 

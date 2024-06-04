@@ -16,9 +16,10 @@
  */
 package com.mcmiddleearth.moderation.bungee;
 
-import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommand;
-import com.mcmiddleearth.moderation.bungee.command.handler.ReportCommandHandler;
-import com.mcmiddleearth.moderation.bungee.command.handler.WatchlistCommandHandler;
+import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
+import com.mcmiddleearth.moderation.core.Permission;
+import com.mcmiddleearth.moderation.core.command.handler.ReportCommandHandler;
+import com.mcmiddleearth.moderation.core.command.handler.WatchlistCommandHandler;
 import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
@@ -26,6 +27,8 @@ import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.configuration.ModerationConfig;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
+import net.kyori.adventure.platform.AudienceProvider;
+import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
@@ -53,13 +56,16 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
     private static ModerationConfig config;
     private static File configFile;
 
+    BungeeAudiences adventure = null;
+
     private final CommandDispatcher<ModerationCommandSender> commandDispatcher = new CommandDispatcher<>();
-    private final Set<ModerationPluginCommand> commands = new HashSet<>();
+    private final Set<ModerationPluginCommandBungee> commands = new HashSet<>();
 
     private static WatchlistManager watchlistManager;
 
     @Override
     public void onEnable() {
+        adventure = BungeeAudiences.create(this);
         ModerationProxy.setPlugin(this);
         ModerationProxy.setInstance(new ModerationProxyBungee());
 
@@ -67,10 +73,10 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
         saveDefaultConfig();
         config = new ModerationConfig(configFile);
 
-        commands.add(new ModerationPluginCommand(commandDispatcher,
-                new WatchlistCommandHandler("watchlist", commandDispatcher)));
-        commands.add(new ModerationPluginCommand(commandDispatcher,
-                new ReportCommandHandler("report", commandDispatcher)));
+        commands.add(new ModerationPluginCommandBungee(commandDispatcher,
+                new WatchlistCommandHandler("watchlist", Permission.WATCHLIST, commandDispatcher)));
+        commands.add(new ModerationPluginCommandBungee(commandDispatcher,
+                new ReportCommandHandler("report", Permission.SEND_REPORT, commandDispatcher)));
 
         commands.forEach(command -> ProxyServer.getInstance().getPluginManager()
                 .registerCommand(this, command));
@@ -89,7 +95,7 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
     @SuppressWarnings("unused")
     @EventHandler
     public void onTabComplete(TabCompleteEvent event) {
-        for (ModerationPluginCommand command : commands) {
+        for (ModerationPluginCommandBungee command : commands) {
             if (event.getCursor().startsWith("/"+command.getName())) {
                 command.onTabComplete(event);
                 return;
@@ -153,4 +159,8 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
         return getConfig().getWatchlistTablistPrefix();
     }
 
+    @Override
+    public AudienceProvider getAdventure() {
+        return adventure;
+    }
 }

@@ -1,7 +1,7 @@
-package com.mcmiddleearth.moderation.bungee.command.builder;
+package com.mcmiddleearth.moderation.core.command.builder;
 
-import com.mcmiddleearth.moderation.bungee.command.argument.HelpfulArgumentType;
-import com.mcmiddleearth.moderation.bungee.command.node.HelpfulArgumentNode;
+import com.mcmiddleearth.moderation.core.command.argument.HelpfulArgumentType;
+import com.mcmiddleearth.moderation.core.command.node.HelpfulArgumentNode;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;

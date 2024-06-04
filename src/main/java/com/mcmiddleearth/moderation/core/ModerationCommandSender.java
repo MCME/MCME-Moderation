@@ -1,5 +1,6 @@
 package com.mcmiddleearth.moderation.core;
 
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 
 public interface ModerationCommandSender {
@@ -8,8 +9,19 @@ public interface ModerationCommandSender {
 
     String getName();
 
-    void sendInfo(Component message);
-    void sendError(Component message);
+    Audience getAudience();
+
+    default void sendInfo(Component message) {
+        Component result = Component.text("[Mod]").color(Style.MOD).append(Component.text(" ").color(Style.INFO));
+        result = result.append(message);
+        getAudience().sendMessage(result);
+    }
+
+    default void sendError(Component message) {
+        Component result = Component.text("[Mod]").color(Style.MOD).append(Component.text(" ").color(Style.ERROR));
+        result = result.append(message);
+        getAudience().sendMessage(result);
+    }
 
 
 }

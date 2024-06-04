@@ -1,4 +1,4 @@
-package com.mcmiddleearth.moderation.bungee.command.node;
+package com.mcmiddleearth.moderation.core.command.node;
 
 public interface HelpfulNode {
 
