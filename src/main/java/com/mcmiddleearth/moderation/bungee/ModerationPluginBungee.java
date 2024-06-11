@@ -28,6 +28,7 @@ import com.mcmiddleearth.moderation.core.configuration.ModerationConfig;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
@@ -37,6 +38,7 @@ import net.md_5.bungee.event.EventHandler;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  *
@@ -76,6 +78,8 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
         ProxyServer.getInstance().getPluginManager().registerListener(this,this);
         ProxyServer.getInstance().getPluginManager().registerListener(this, new WatchlistListener());
         watchlistManager = new WatchlistManager(getDataFolder());
+        Logger.getGlobal().info("Enabled Moderation plugin! sent to global logger.");
+        adventure.console().sendMessage(Component.text("Enabled Moderation plugin! Sent to audience.console"));
     }
 
     @Override
