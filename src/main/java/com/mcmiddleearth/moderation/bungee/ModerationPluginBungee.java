@@ -81,6 +81,7 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
     @Override
     public void onDisable() {
         //maybe TODO: e.g. cancel scheduled tasks.
+        adventure.close();
     }
 
     @SuppressWarnings("unused")
