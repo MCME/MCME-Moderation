@@ -39,6 +39,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>net.kyori:adventure-platform-bungeecord</include>
+                                    <include>net.kyori:adventure-platform-api</include>
                                     <include>net.kyori:adventure-api</include>
                                 </includes>
                             </artifactSet>
@@ -124,6 +125,11 @@
         <dependency>
             <groupId>net.kyori</groupId>
             <artifactId>adventure-platform-bungeecord</artifactId>
+            <version>4.3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>net.kyori</groupId>
+            <artifactId>adventure-platform-api</artifactId>
             <version>4.3.3</version>
         </dependency>
         <dependency>
