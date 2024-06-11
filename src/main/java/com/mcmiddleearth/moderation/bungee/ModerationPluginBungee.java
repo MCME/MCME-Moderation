@@ -17,17 +17,16 @@
 package com.mcmiddleearth.moderation.bungee;
 
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
-import com.mcmiddleearth.moderation.core.Permission;
-import com.mcmiddleearth.moderation.core.command.handler.ReportCommandHandler;
-import com.mcmiddleearth.moderation.core.command.handler.WatchlistCommandHandler;
 import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
+import com.mcmiddleearth.moderation.core.Permission;
+import com.mcmiddleearth.moderation.core.command.handler.ReportCommandHandler;
+import com.mcmiddleearth.moderation.core.command.handler.WatchlistCommandHandler;
 import com.mcmiddleearth.moderation.core.configuration.ModerationConfig;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
-import net.kyori.adventure.platform.AudienceProvider;
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -36,14 +35,8 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -54,7 +47,6 @@ import java.util.logging.Logger;
 public class ModerationPluginBungee extends Plugin implements ModerationPlugin, Listener {
     
     private static ModerationConfig config;
-    private static File configFile;
 
     BungeeAudiences adventure = null;
 
@@ -69,9 +61,8 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
         ModerationProxy.setPlugin(this);
         ModerationProxy.setInstance(new ModerationProxyBungee());
 
-        configFile = new File(getDataFolder(),"config.yml");
-        saveDefaultConfig();
-        config = new ModerationConfig(configFile);
+        ModerationConfig.saveDefaultConfig(getDataFolder());
+        config = new ModerationConfig(ModerationConfig.getConfigFile(getDataFolder()));
 
         commands.add(new ModerationPluginCommandBungee(commandDispatcher,
                 new WatchlistCommandHandler("watchlist", Permission.WATCHLIST, commandDispatcher)));
@@ -100,33 +91,6 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
                 command.onTabComplete(event);
                 return;
             }
-        }
-    }
-
-    private void saveDefaultConfig() {
-        if(!getDataFolder().exists()) {
-            if(!getDataFolder().mkdir()) {
-                Logger.getLogger(ModerationPluginBungee.class.getName()).log(Level.WARNING, "Creation of plugin data folder failed!");
-            }
-        }
-        if(!configFile.exists()) {
-            try {
-                if(configFile.createNewFile()) {
-                    try (InputStreamReader in = new InputStreamReader(getResourceAsStream("config.yml"));
-                         FileWriter fw = new FileWriter(configFile)) {
-                        char[] buf = new char[1024];
-                        int read = 1;
-                        while (read > 0) {
-                            read = in.read(buf);
-                            if (read > 0)
-                                fw.write(buf, 0, read);
-                        }
-                        fw.flush();
-                    }
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(ModerationPluginBungee.class.getName()).log(Level.SEVERE, null, ex);
-            } 
         }
     }
 
@@ -159,8 +123,7 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
         return getConfig().getWatchlistTablistPrefix();
     }
 
-    @Override
-    public AudienceProvider getAdventure() {
+    public BungeeAudiences getAdventure() {
         return adventure;
     }
 }

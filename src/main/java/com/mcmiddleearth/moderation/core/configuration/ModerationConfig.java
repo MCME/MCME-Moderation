@@ -16,7 +16,11 @@
  */
 package com.mcmiddleearth.moderation.core.configuration;
 
-import java.io.File;
+import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
+
+import java.io.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Eriol_Eandur
@@ -46,5 +50,42 @@ public class ModerationConfig extends YamlBridge {
     public String getWatchlistDiscordChannel() { return getString("watchlist.discordChannel", "reports"); }
     public boolean isWatchlistPingModerators() { return getBoolean("watchlist.pingModerators", false); }
     public String getWatchlistTablistPrefix() { return getString("watchlist.tabListPrefix", "#ff8866W"); }
+
+    public static File getConfigFile(File dataFolder) {
+        return new File(dataFolder,"config.yml");
+    }
+
+    public static void saveDefaultConfig(File dataFolder) {
+        if(!dataFolder.exists()) {
+            if(!dataFolder.mkdir()) {
+                Logger.getLogger(ModerationPluginBungee.class.getName()).log(Level.WARNING, "Creation of plugin data folder failed!");
+            }
+        }
+        File configFile = getConfigFile(dataFolder);
+        InputStream inputStream = ModerationConfig.class.getResourceAsStream("config.yml");
+        if(!configFile.exists()) {
+            if(inputStream==null) {
+                Logger.getLogger(ModerationConfig.class.getName()).log(Level.SEVERE, "resource config.yml not found in plugin jar");
+            } else {
+                try {
+                    if (configFile.createNewFile()) {
+                        try (InputStreamReader in = new InputStreamReader(inputStream);
+                             FileWriter fw = new FileWriter(configFile)) {
+                            char[] buf = new char[1024];
+                            int read = 1;
+                            while (read > 0) {
+                                read = in.read(buf);
+                                if (read > 0)
+                                    fw.write(buf, 0, read);
+                            }
+                            fw.flush();
+                        }
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(ModerationConfig.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
 
 }

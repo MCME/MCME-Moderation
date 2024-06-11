@@ -34,7 +34,9 @@ public class ModerationProxyVelocity extends ModerationProxy {
     }
 
     @Override
-    public void schedule(ModerationPlugin plugin, Runnable task, int delay, TimeUnit seconds) {
-
+    public void schedule(ModerationPlugin plugin, Runnable task, int delay, TimeUnit timeUnit) {
+        proxy.getScheduler().buildTask(plugin, task)
+                .delay(delay, timeUnit)
+                .schedule();
     }
 }

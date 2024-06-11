@@ -3,7 +3,6 @@ package com.mcmiddleearth.moderation.bungee;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import net.kyori.adventure.audience.Audience;
-import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
@@ -17,9 +16,9 @@ public class ModerationCommandSenderBungee implements ModerationCommandSender {
         sender = commandSender;
         commandSender.getName();
         if(commandSender instanceof ProxiedPlayer player) {
-            audience = ((BungeeAudiences)ModerationProxy.getPlugin().getAdventure()).player(player);
+            audience = ((ModerationPluginBungee)ModerationProxy.getPlugin()).getAdventure().player(player);
         } else {
-            audience = ModerationProxy.getPlugin().getAdventure().console();
+            audience = ((ModerationPluginBungee)ModerationProxy.getPlugin()).getAdventure().console();
         }
     }
 

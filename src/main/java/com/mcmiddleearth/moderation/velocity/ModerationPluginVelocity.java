@@ -1,7 +1,6 @@
 package com.mcmiddleearth.moderation.velocity;
 
 import com.google.inject.Inject;
-import com.mcmiddleearth.moderation.bungee.ModerationProxyBungee;
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
@@ -20,8 +19,8 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import net.kyori.adventure.platform.AudienceProvider;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
@@ -30,27 +29,36 @@ import java.util.logging.Logger;
         authors = {"Eriol_Eandur"})
 public class ModerationPluginVelocity implements ModerationPlugin {
 
-    ProxyServer proxyServer;
-    Logger logger;
-    Path dataFolder;
-    CommandDispatcher<ModerationCommandSender> dispatcher;
+    private static ModerationConfig config;
+
+    private final ProxyServer proxyServer;
+    private final Logger logger;
+    private final Path dataFolder;
+    private File configFile;
+
+    private CommandDispatcher<ModerationCommandSender> dispatcher;
+
+    WatchlistManager watchlistManager;
 
     @Inject
     public ModerationPluginVelocity(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.proxyServer = server;
         this.logger = logger;
         this.dataFolder = dataDirectory;
-
     }
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        // Do some operation demanding access to the Velocity API here.
-        // For instance, we could register an event:
         ModerationProxy.setPlugin(this);
         ModerationProxy.setInstance(new ModerationProxyVelocity(proxyServer));
+
+        ModerationConfig.saveDefaultConfig(dataFolder.toFile());
+        config = new ModerationConfig(ModerationConfig.getConfigFile(dataFolder.toFile()));
+
         proxyServer.getEventManager().register(this, new WatchlistListener());
         dispatcher = new CommandDispatcher<>();
+        watchlistManager = new WatchlistManager(dataFolder.toFile());
+
         CommandManager commandManager = proxyServer.getCommandManager();
         CommandMeta watchlistMeta = commandManager.metaBuilder("watchlist")
                 .aliases("Watchlist", "wl")
@@ -71,16 +79,12 @@ public class ModerationPluginVelocity implements ModerationPlugin {
 
     @Override
     public WatchlistManager getWatchlistManager() {
-        return null;
+        return watchlistManager;
     }
 
     @Override
     public ModerationConfig getConfig() {
-        return null;
+        return config;
     }
 
-    @Override
-    public AudienceProvider getAdventure() {
-        return null;
-    }
 }
