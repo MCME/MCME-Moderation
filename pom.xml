@@ -42,7 +42,11 @@
                                     <include>net.kyori:adventure-platform-api</include>
                                     <include>net.kyori:adventure-platform-bungeecord</include>
                                     <include>net.kyori:adventure-platform-facet</include>
+                                    <include>net.kyori:examination-api</include>
                                 </includes>
+                                <excludes>
+                                    <exclude>com.velocitypowered:velocity-api</exclude>
+                                </excludes>
                             </artifactSet>
                             <relocations>
                                 <relocation>
