@@ -39,6 +39,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>net.kyori:adventure-api</include>
+                                    <include>net.kyori:adventure-key</include>
                                     <include>net.kyori:adventure-platform-api</include>
                                     <include>net.kyori:adventure-platform-bungeecord</include>
                                     <include>net.kyori:adventure-platform-facet</include>
