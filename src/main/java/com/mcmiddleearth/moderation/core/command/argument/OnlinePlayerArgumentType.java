@@ -16,7 +16,7 @@
  */
 package com.mcmiddleearth.moderation.core.command.argument;
 
-import com.mcmiddleearth.moderation.core.ModerationPlayer;
+import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
@@ -35,7 +35,7 @@ public class OnlinePlayerArgumentType extends AbstractPlayerArgumentType {
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
         String o = reader.readUnquotedString();
-        if (ModerationProxy.getInstance().getPlayers().stream().map(ModerationPlayer::getName).collect(Collectors.toSet()).contains(o)) {
+        if (ModerationProxy.getInstance().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet()).contains(o)) {
             return o;
         }
         throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of OnlinePlayerArgument")),
@@ -44,7 +44,7 @@ public class OnlinePlayerArgumentType extends AbstractPlayerArgumentType {
 
     @Override
     protected Collection<String> getPlayerSuggestions() {
-        return ModerationProxy.getInstance().getPlayers().stream().map(ModerationPlayer::getName).collect(Collectors.toSet());
+        return ModerationProxy.getInstance().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet());
     }
 
 }

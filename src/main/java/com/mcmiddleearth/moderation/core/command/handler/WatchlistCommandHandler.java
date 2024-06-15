@@ -17,6 +17,7 @@
 package com.mcmiddleearth.moderation.core.command.handler;
 
 
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.argument.KnownPlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
@@ -24,7 +25,6 @@ import com.mcmiddleearth.moderation.core.command.argument.PageArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulRequiredArgumentBuilder;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
@@ -51,7 +51,7 @@ import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
 public class WatchlistCommandHandler extends AbstractCommandHandler {
 
-    public WatchlistCommandHandler(String name, String permission, CommandDispatcher<ModerationCommandSender> dispatcher) {
+    public WatchlistCommandHandler(String name, String permission, CommandDispatcher<McmeCommandSender> dispatcher) {
         super(name, permission);
         dispatcher
             .register(HelpfulLiteralBuilder.literal(name)
@@ -115,7 +115,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                                                                                           context.getArgument("reason",Integer.class)))))));
     }
 
-    private int viewDetails(ModerationCommandSender commandSender, String showPlayer) {
+    private int viewDetails(McmeCommandSender commandSender, String showPlayer) {
         WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(showPlayer);
         if(data != null) {
             Component message = Component.text("Watchlist reasons for ")
@@ -140,7 +140,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         return 0;
     }
 
-    private int viewList(ModerationCommandSender commandSender, String group, Integer page) {
+    private int viewList(McmeCommandSender commandSender, String group, Integer page) {
         List<Map.Entry<String,WatchlistPlayerData>> displayList = getWatchlistSelection(group);
         Component message;
         if(group.equals("all")) {
@@ -216,7 +216,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         return selectionList;
     }
 
-    private int addPlayer(ModerationCommandSender commandSender, String addPlayer, String reason) {
+    private int addPlayer(McmeCommandSender commandSender, String addPlayer, String reason) {
         ModerationProxy.getPlugin().getWatchlistManager().addWatchlist(addPlayer, commandSender, reason);
         commandSender.sendInfo(Component.text("Added ")
                 .append(Component.text(addPlayer).color(Style.INFO_STRESSED))
@@ -237,7 +237,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         return 0;
     }
 
-    private int removePlayer(ModerationCommandSender commandSender, String removePlayer) {
+    private int removePlayer(McmeCommandSender commandSender, String removePlayer) {
         WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(removePlayer);
         if(data != null) {
             ModerationProxy.getPlugin().getWatchlistManager().removeWatchlist(removePlayer);
@@ -250,7 +250,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         return 0;
     }
 
-    private int removeReason(ModerationCommandSender commandSender, String player, Integer reason) {
+    private int removeReason(McmeCommandSender commandSender, String player, Integer reason) {
         WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(player);
         if(data != null) {
             if (reason > data.getReasons().size()) {

@@ -16,7 +16,7 @@
  */
 package com.mcmiddleearth.moderation.core.command.argument;
 
-import com.mcmiddleearth.moderation.core.ModerationPlayer;
+import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 
 import java.util.Collection;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class OfflinePlayerArgumentType extends AbstractPlayerArgumentType {
 
     protected Collection<String> getPlayerSuggestions() {
-        Collection<String> result = ModerationProxy.getInstance().getPlayers().stream().map(ModerationPlayer::getName).collect(Collectors.toSet());
+        Collection<String> result = ModerationProxy.getInstance().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet());
         result.addAll(ModerationProxy.getPlugin().getWatchlistManager().getKnownPlayers().keySet());
         result.addAll(ModerationProxy.getPlugin().getWatchlistManager().getWatchlist().keySet());
         return result.stream().sorted().collect(Collectors.toList());

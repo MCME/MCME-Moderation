@@ -17,9 +17,9 @@
 package com.mcmiddleearth.moderation.core.watchlist;
 
 import com.google.common.base.Joiner;
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
 import com.mcmiddleearth.moderation.core.Style;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
-import com.mcmiddleearth.moderation.core.ModerationPlayer;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.configuration.YamlBridge;
@@ -71,7 +71,7 @@ public class WatchlistManager {
         return watchlist.keySet().stream().anyMatch(key -> key.equalsIgnoreCase(name));
     }
 
-    public boolean hasWatchedIp(ModerationPlayer player) {
+    public boolean hasWatchedIp(McmeProxyPlayer player) {
         return watchlist.values().stream().anyMatch(playerData -> !playerData.getIp().equals("unknown")
                                                                    && playerData.getIp().equals(getIp(player.getUniqueId())));
     }
@@ -93,7 +93,7 @@ public class WatchlistManager {
         yaml.save(dataFile);
     }
 
-    public void updateWatchlist(ModerationPlayer player) {
+    public void updateWatchlist(McmeProxyPlayer player) {
         WatchlistPlayerData nameMatch = getWatchlistData(player.getName());
         if(nameMatch!=null) {
 
@@ -150,7 +150,7 @@ public class WatchlistManager {
                                             .map(Map.Entry::getValue).findFirst().orElse(null);
     }
 
-    public void addKnownPlayer(ModerationPlayer player) {
+    public void addKnownPlayer(McmeProxyPlayer player) {
         knownPlayers.put(player.getName(),player.getUniqueId());
 //for(String name: knownPlayers.keySet()) {
 //    Logger.getGlobal().info("Known: "+name+" "+knownPlayers.get(name));
@@ -171,7 +171,7 @@ public class WatchlistManager {
     }
 
     public String getIp(UUID uuid) {
-        ModerationPlayer player = ModerationProxy.getInstance().getPlayer(uuid);
+        McmeProxyPlayer player = ModerationProxy.getInstance().getPlayer(uuid);
         if(player != null) {
             SocketAddress address =player.getSocketAddress();
             if(address instanceof InetSocketAddress) {
@@ -184,7 +184,7 @@ public class WatchlistManager {
         return null;
     }
 
-    public void addWatchlist(String addPlayer, ModerationCommandSender sender, String reason) {
+    public void addWatchlist(String addPlayer, McmeCommandSender sender, String reason) {
         String initiator = (sender!=null?sender.getName():"plugin");
         boolean byModerator = sender == null || sender.hasPermission(Permission.ADD_WATCHLIST);
         WatchlistReason watchlistReason = new WatchlistReason(new Date(),reason,initiator,addPlayer,byModerator);
@@ -215,7 +215,7 @@ public class WatchlistManager {
 
     public Collection<WatchlistPlayerData> getWatchedAliases(String playerName) {
         //WatchlistPlayerData playerData = watchlist.get(player);
-        ModerationPlayer player = ModerationProxy.getInstance().getPlayer(playerName);
+        McmeProxyPlayer player = ModerationProxy.getInstance().getPlayer(playerName);
         if(player!=null) {
             return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
                             && watchlistPlayerData.getIp().equals(getIp(player.getUniqueId())))
@@ -229,7 +229,7 @@ public class WatchlistManager {
                 .map(Map.Entry::getKey).findFirst().orElse(null);
     }
 
-    public void processPlayerJoin(ModerationPlayer player) {
+    public void processPlayerJoin(McmeProxyPlayer player) {
         ModerationProxy.getPlugin().getWatchlistManager().addKnownPlayer(player);
 
         //handle name changes of players

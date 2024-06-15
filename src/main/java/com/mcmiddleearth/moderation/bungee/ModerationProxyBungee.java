@@ -1,6 +1,7 @@
 package com.mcmiddleearth.moderation.bungee;
 
-import com.mcmiddleearth.moderation.core.ModerationPlayer;
+import com.mcmiddleearth.base.bungee.player.BungeeMcmePlayer;
+import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import net.md_5.bungee.api.ProxyServer;
@@ -13,18 +14,19 @@ import java.util.stream.Collectors;
 public class ModerationProxyBungee extends ModerationProxy {
 
     @Override
-    public Collection<ModerationPlayer> getPlayers() {
-        return ProxyServer.getInstance().getPlayers().stream().map(ModerationPlayerBungee::new).collect(Collectors.toList());
+    public Collection<McmeProxyPlayer> getPlayers() {
+        return ProxyServer.getInstance().getPlayers().stream()
+                .map(player -> new BungeeMcmePlayer(getPlugin(), player)).collect(Collectors.toList());
     }
 
     @Override
-    public ModerationPlayer getPlayer(UUID uuid) {
-        return new ModerationPlayerBungee(ProxyServer.getInstance().getPlayer(uuid));
+    public McmeProxyPlayer getPlayer(UUID uuid) {
+        return new BungeeMcmePlayer(getPlugin(), ProxyServer.getInstance().getPlayer(uuid));
     }
 
     @Override
-    public ModerationPlayer getPlayer(String playerName) {
-        return new ModerationPlayerBungee(ProxyServer.getInstance().getPlayer(playerName));
+    public McmeProxyPlayer getPlayer(String playerName) {
+        return new BungeeMcmePlayer(getPlugin(), ProxyServer.getInstance().getPlayer(playerName));
     }
 
     @Override

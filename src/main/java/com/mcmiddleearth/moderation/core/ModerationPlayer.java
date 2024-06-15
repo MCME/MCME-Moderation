@@ -1,7 +1,5 @@
 package com.mcmiddleearth.moderation.core;
 
-import net.kyori.adventure.text.Component;
-
 import java.net.SocketAddress;
 import java.util.UUID;
 

@@ -1,6 +1,6 @@
 package com.mcmiddleearth.moderation.core.command.node;
 
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.RedirectModifier;
@@ -13,13 +13,13 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
-public class HelpfulLiteralNode extends LiteralCommandNode<ModerationCommandSender> implements HelpfulNode {
+public class HelpfulLiteralNode extends LiteralCommandNode<McmeCommandSender> implements HelpfulNode {
 
     private String helpText;
     private final String tooltip;
 
-    public HelpfulLiteralNode(String literal, Command<ModerationCommandSender> command, Predicate<ModerationCommandSender> requirement,
-                              CommandNode<ModerationCommandSender> redirect, RedirectModifier<ModerationCommandSender> modifier,
+    public HelpfulLiteralNode(String literal, Command<McmeCommandSender> command, Predicate<McmeCommandSender> requirement,
+                              CommandNode<McmeCommandSender> redirect, RedirectModifier<McmeCommandSender> modifier,
                               boolean forks, String helpText, String tooltip) {
         super(literal, command, requirement, redirect, modifier, forks);
         this.helpText = helpText;
@@ -39,7 +39,7 @@ public class HelpfulLiteralNode extends LiteralCommandNode<ModerationCommandSend
     @Override
     public void setHelpText(String helpText) {
         this.helpText = helpText;
-        for(CommandNode<ModerationCommandSender> child: getChildren()) {
+        for(CommandNode<McmeCommandSender> child: getChildren()) {
             if(child instanceof HelpfulNode && ((HelpfulNode)child).getHelpText().equals("")) {
                 ((HelpfulNode)child).setHelpText(helpText);
             }
@@ -47,7 +47,7 @@ public class HelpfulLiteralNode extends LiteralCommandNode<ModerationCommandSend
     }
 
     @Override
-    public CompletableFuture<Suggestions> listSuggestions(CommandContext<ModerationCommandSender> context, SuggestionsBuilder builder) {
+    public CompletableFuture<Suggestions> listSuggestions(CommandContext<McmeCommandSender> context, SuggestionsBuilder builder) {
         if (canUse(context.getSource()) && getLiteral().toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
             return builder.suggest(getLiteral(),new LiteralMessage(getHelpText())).buildFuture();
         } else {
@@ -56,9 +56,9 @@ public class HelpfulLiteralNode extends LiteralCommandNode<ModerationCommandSend
     }
 
     @Override
-    public void addChild(CommandNode<ModerationCommandSender> node) {
+    public void addChild(CommandNode<McmeCommandSender> node) {
         super.addChild(node);
-        CommandNode<ModerationCommandSender> child = getChildren().stream().filter(search -> search.getName().equals(node.getName()))
+        CommandNode<McmeCommandSender> child = getChildren().stream().filter(search -> search.getName().equals(node.getName()))
                 .findFirst().orElse(null);
         if(node instanceof HelpfulNode && child instanceof HelpfulNode && ((HelpfulNode)child).getHelpText().equals("")) {
              ((HelpfulNode)child).setHelpText(helpText);

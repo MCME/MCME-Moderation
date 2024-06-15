@@ -1,6 +1,7 @@
 package com.mcmiddleearth.moderation.velocity;
 
-import com.mcmiddleearth.moderation.core.ModerationPlayer;
+import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
+import com.mcmiddleearth.base.velocity.player.VelocityMcmePlayer;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -19,18 +20,21 @@ public class ModerationProxyVelocity extends ModerationProxy {
     }
 
     @Override
-    public Collection<ModerationPlayer> getPlayers() {
-        return proxy.getAllPlayers().stream().map(ModerationPlayerVelocity::new).collect(Collectors.toList());
+    public Collection<McmeProxyPlayer> getPlayers() {
+        return proxy.getAllPlayers().stream()
+                .map(player -> new VelocityMcmePlayer(ModerationProxy.getPlugin(), player)).collect(Collectors.toList());
     }
 
     @Override
-    public ModerationPlayer getPlayer(UUID uuid) {
-        return proxy.getPlayer(uuid).map(ModerationPlayerVelocity::new).orElse(null);
+    public McmeProxyPlayer getPlayer(UUID uuid) {
+        return proxy.getPlayer(uuid)
+                .map(player -> new VelocityMcmePlayer(ModerationProxy.getPlugin(), player)).orElse(null);
     }
 
     @Override
-    public ModerationPlayer getPlayer(String playerName) {
-        return proxy.getPlayer(playerName).map(ModerationPlayerVelocity::new).orElse(null);
+    public McmeProxyPlayer getPlayer(String playerName) {
+        return proxy.getPlayer(playerName)
+                .map(player -> new VelocityMcmePlayer(ModerationProxy.getPlugin(), player)).orElse(null);
     }
 
     @Override

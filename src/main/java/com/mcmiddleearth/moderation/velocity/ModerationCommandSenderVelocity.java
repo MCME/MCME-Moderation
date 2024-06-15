@@ -2,8 +2,8 @@ package com.mcmiddleearth.moderation.velocity;
 
 import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.velocitypowered.api.command.CommandSource;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.identity.Identity;
+import net.kyori.adventure.text.Component;
 
 public class ModerationCommandSenderVelocity implements ModerationCommandSender {
 
@@ -24,7 +24,8 @@ public class ModerationCommandSenderVelocity implements ModerationCommandSender 
     }
 
     @Override
-    public Audience getAudience() {
-        return source;
+    public void sendMessage(Component message) {
+        source.sendMessage(message);
     }
+
 }

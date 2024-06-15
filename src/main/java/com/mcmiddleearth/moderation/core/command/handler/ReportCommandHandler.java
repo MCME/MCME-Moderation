@@ -16,12 +16,12 @@
  */
 package com.mcmiddleearth.moderation.core.command.handler;
 
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulRequiredArgumentBuilder;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
@@ -35,7 +35,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 
 public class ReportCommandHandler extends AbstractCommandHandler {
 
-    public ReportCommandHandler(String name, String permission, CommandDispatcher<ModerationCommandSender> dispatcher) {
+    public ReportCommandHandler(String name, String permission, CommandDispatcher<McmeCommandSender> dispatcher) {
         super(name, permission);
         dispatcher
             .register(HelpfulLiteralBuilder.literal(name)
@@ -54,7 +54,7 @@ public class ReportCommandHandler extends AbstractCommandHandler {
                                                         context.getArgument("reason", String.class))))));
     }
 
-    private int sendReport(ModerationCommandSender commandSender, String player, String reason) {
+    private int sendReport(McmeCommandSender commandSender, String player, String reason) {
         Component message = Component.text(commandSender.getName()).color(Style.INFO_STRESSED)//.bold(true).italic(true)
                 .append(Component.text(" reported player ").color(Style.INFO))//.bold(false).italic(false)
                 .append(Component.text(player).color(Style.INFO_STRESSED).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))

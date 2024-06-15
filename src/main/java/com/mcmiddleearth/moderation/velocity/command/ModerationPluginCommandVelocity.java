@@ -1,10 +1,11 @@
 package com.mcmiddleearth.moderation.velocity.command;
 
 import com.google.common.base.Joiner;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.velocity.command.VelocityMcmeCommandSender;
+import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.command.ModerationPluginCommand;
 import com.mcmiddleearth.moderation.core.command.handler.AbstractCommandHandler;
-import com.mcmiddleearth.moderation.velocity.ModerationCommandSenderVelocity;
 import com.mojang.brigadier.CommandDispatcher;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
@@ -18,7 +19,7 @@ public class ModerationPluginCommandVelocity implements SimpleCommand {
 
     private final String name, permission;
 
-    public ModerationPluginCommandVelocity(CommandDispatcher<ModerationCommandSender> commandDispatcher, AbstractCommandHandler handler) {
+    public ModerationPluginCommandVelocity(CommandDispatcher<McmeCommandSender> commandDispatcher, AbstractCommandHandler handler) {
         moderationCommand = new ModerationPluginCommand(commandDispatcher);
         this.permission = handler.getPermission();
         this.name = handler.getCommand();
@@ -28,7 +29,7 @@ public class ModerationPluginCommandVelocity implements SimpleCommand {
     public void execute(final Invocation invocation) {
         CommandSource source = invocation.source();
         String[] args = invocation.arguments();
-        moderationCommand.execute(new ModerationCommandSenderVelocity(source),name, args);
+        moderationCommand.execute(new VelocityMcmeCommandSender(ModerationProxy.getPlugin(), source),name, args);
     }
 
     @Override
@@ -40,7 +41,7 @@ public class ModerationPluginCommandVelocity implements SimpleCommand {
     public CompletableFuture<List<String>> suggestAsync(final Invocation invocation) {
         String cursor = Joiner.on(" ").join(name, invocation.arguments());
         return CompletableFuture.completedFuture(moderationCommand
-                .getSuggestions(new ModerationCommandSenderVelocity(invocation.source()),cursor));
+                .getSuggestions(new VelocityMcmeCommandSender(ModerationProxy.getPlugin(), invocation.source()),cursor));
     }
 
 }

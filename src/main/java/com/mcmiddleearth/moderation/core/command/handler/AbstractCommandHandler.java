@@ -1,7 +1,5 @@
 package com.mcmiddleearth.moderation.core.command.handler;
 
-import com.mcmiddleearth.moderation.core.Permission;
-
 public abstract class AbstractCommandHandler {
 
     private final String command;

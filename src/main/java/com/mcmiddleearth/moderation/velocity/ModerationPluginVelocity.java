@@ -1,7 +1,8 @@
 package com.mcmiddleearth.moderation.velocity;
 
 import com.google.inject.Inject;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.command.McmePlugin;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
@@ -27,7 +28,7 @@ import java.util.logging.Logger;
 @Plugin(id = "mcmemoderation", name = "MCME-Moderation", version = "1.3.0",
         url = "https://github.com/MCME/MCME-Moderation", description = "Moderation plugin for MCME on Velocity proxy",
         authors = {"Eriol_Eandur"})
-public class ModerationPluginVelocity implements ModerationPlugin {
+public class ModerationPluginVelocity implements ModerationPlugin, McmePlugin {
 
     private static ModerationConfig config;
 
@@ -36,7 +37,7 @@ public class ModerationPluginVelocity implements ModerationPlugin {
     private final Path dataFolder;
     private File configFile;
 
-    private CommandDispatcher<ModerationCommandSender> dispatcher;
+    private CommandDispatcher<McmeCommandSender> dispatcher;
 
     WatchlistManager watchlistManager;
 

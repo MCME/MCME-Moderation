@@ -1,5 +1,7 @@
 package com.mcmiddleearth.moderation.core;
 
+import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
+
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -25,11 +27,11 @@ public abstract class ModerationProxy {
         instance = proxy;
     }
 
-    public abstract Collection<ModerationPlayer> getPlayers();
+    public abstract Collection<McmeProxyPlayer> getPlayers();
 
-    public abstract ModerationPlayer getPlayer(UUID uuid);
+    public abstract McmeProxyPlayer getPlayer(UUID uuid);
 
-    public abstract ModerationPlayer getPlayer(String playerName);
+    public abstract McmeProxyPlayer getPlayer(String playerName);
 
     public abstract void schedule(ModerationPlugin plugin, Runnable task, int delay, TimeUnit seconds);
 }

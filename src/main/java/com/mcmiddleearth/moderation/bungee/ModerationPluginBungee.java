@@ -16,9 +16,9 @@
  */
 package com.mcmiddleearth.moderation.bungee;
 
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
 import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
-import com.mcmiddleearth.moderation.core.ModerationCommandSender;
 import com.mcmiddleearth.moderation.core.ModerationPlugin;
 import com.mcmiddleearth.moderation.core.ModerationProxy;
 import com.mcmiddleearth.moderation.core.Permission;
@@ -52,7 +52,7 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
 
     BungeeAudiences adventure = null;
 
-    private final CommandDispatcher<ModerationCommandSender> commandDispatcher = new CommandDispatcher<>();
+    private final CommandDispatcher<McmeCommandSender> commandDispatcher = new CommandDispatcher<>();
     private final Set<ModerationPluginCommandBungee> commands = new HashSet<>();
 
     private static WatchlistManager watchlistManager;
@@ -128,7 +128,4 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
         return getConfig().getWatchlistTablistPrefix();
     }
 
-    public BungeeAudiences getAdventure() {
-        return adventure;
-    }
 }
