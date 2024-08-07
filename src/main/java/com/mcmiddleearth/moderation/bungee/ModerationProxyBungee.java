@@ -11,6 +11,11 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+/**
+ * deprecated
+ * to be removed
+ * features to be removed to Base plugins
+ * */
 public class ModerationProxyBungee extends ModerationProxy {
 
     @Override

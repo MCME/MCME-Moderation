@@ -6,6 +6,11 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * deprecated
+ * to be removed
+ * features to be removed to Base plugins
+ * */
 public abstract class ModerationProxy {
 
     private static ModerationPlugin moderationPlugin;

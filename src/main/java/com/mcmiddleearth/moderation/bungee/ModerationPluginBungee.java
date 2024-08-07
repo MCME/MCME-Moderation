@@ -16,6 +16,7 @@
  */
 package com.mcmiddleearth.moderation.bungee;
 
+import com.mcmiddleearth.base.bungee.AbstractBungeePlugin;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
 import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
@@ -33,7 +34,6 @@ import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
-import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.event.EventHandler;
 
 import java.util.HashSet;
@@ -46,7 +46,7 @@ import java.util.logging.Logger;
  */
 
 
-public class ModerationPluginBungee extends Plugin implements ModerationPlugin, Listener {
+public class ModerationPluginBungee extends AbstractBungeePlugin implements ModerationPlugin, Listener {
     
     private static ModerationConfig config;
 
@@ -59,6 +59,7 @@ public class ModerationPluginBungee extends Plugin implements ModerationPlugin, 
 
     @Override
     public void onEnable() {
+        //todo: replace adventure by Base plugin adventure
         adventure = BungeeAudiences.create(this);
         ModerationProxy.setPlugin(this);
         ModerationProxy.setInstance(new ModerationProxyBungee());

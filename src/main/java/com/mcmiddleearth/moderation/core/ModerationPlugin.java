@@ -1,6 +1,6 @@
 package com.mcmiddleearth.moderation.core;
 
-import com.mcmiddleearth.base.core.command.McmePlugin;
+import com.mcmiddleearth.base.core.plugin.McmePlugin;
 import com.mcmiddleearth.moderation.core.configuration.ModerationConfig;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
 import net.kyori.adventure.text.Component;
