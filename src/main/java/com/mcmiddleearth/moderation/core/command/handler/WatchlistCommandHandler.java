@@ -18,6 +18,8 @@ package com.mcmiddleearth.moderation.core.command.handler;
 
 
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.moderation.core.McmeModeration;
+import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.argument.KnownPlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
@@ -25,17 +27,15 @@ import com.mcmiddleearth.moderation.core.command.argument.PageArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulRequiredArgumentBuilder;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
-import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistPlayerData;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistReason;
 import com.mojang.brigadier.CommandDispatcher;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
+import com.mcmiddleearth.base.net.kyori.adventure.text.event.ClickEvent;
+import com.mcmiddleearth.base.net.kyori.adventure.text.event.HoverEvent;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextColor;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextDecoration;
 
 import java.text.DateFormat;
 import java.util.*;
@@ -116,7 +116,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     }
 
     private int viewDetails(McmeCommandSender commandSender, String showPlayer) {
-        WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(showPlayer);
+        WatchlistPlayerData data = McmeModeration.getWatchlistManager().getWatchlistData(showPlayer);
         if(data != null) {
             Component message = Component.text("Watchlist reasons for ")
                     .append(Component.text(showPlayer,Style.INFO_STRESSED))
@@ -200,13 +200,13 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     }
 
     private List<Map.Entry<String, WatchlistPlayerData>> getWatchlistSelection(String selection) {
-        Map<String,WatchlistPlayerData> watchlist = ModerationProxy.getPlugin().getWatchlistManager().getWatchlist();
+        Map<String,WatchlistPlayerData> watchlist = McmeModeration.getWatchlistManager().getWatchlist();
         List<Map.Entry<String,WatchlistPlayerData>> selectionList;
         if(selection.equals("all")) {
             selectionList = watchlist.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
         } else {
             if(selection.equals("online")) {
-                selectionList = watchlist.entrySet().stream().filter(entry -> ModerationProxy.getInstance().getPlayer(entry.getKey())!=null)
+                selectionList = watchlist.entrySet().stream().filter(entry -> McmeModeration.getPlugin().getPlayer(entry.getKey())!=null)
                         .sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
             } else {
                 selectionList = watchlist.entrySet().stream().filter(entry -> entry.getKey().toLowerCase().contains(selection.toLowerCase()))
@@ -217,30 +217,30 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     }
 
     private int addPlayer(McmeCommandSender commandSender, String addPlayer, String reason) {
-        ModerationProxy.getPlugin().getWatchlistManager().addWatchlist(addPlayer, commandSender, reason);
+        McmeModeration.getWatchlistManager().addWatchlist(addPlayer, commandSender, reason);
         commandSender.sendInfo(Component.text("Added ")
                 .append(Component.text(addPlayer).color(Style.INFO_STRESSED))
                 .append(Component.text(" to watchlist for '"+reason+"'").color(Style.INFO)));
         Component message = Component.text(commandSender.getName()+" added ")
                 .append(Component.text(addPlayer).color(Style.INFO_STRESSED))
                 .append(Component.text(" to watchlist for '"+reason+"'").color(Style.INFO));
-        if(ModerationProxy.getPlugin().getConfig().isWatchlistSendIngame()) {
-            ModerationProxy.getInstance().getPlayers().stream()
+        if(McmeModeration.getConfig().isWatchlistSendIngame()) {
+            McmeModeration.getPlugin().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST) && !moderator.equals(commandSender))
                     .forEach(moderator -> moderator.sendInfo(message));
         }
-        if(ModerationProxy.getPlugin().getConfig().isWatchlistSendDiscord()) {
-            String discordChannel = ModerationProxy.getPlugin().getConfig().getWatchlistDiscordChannel();
+        if(McmeModeration.getConfig().isWatchlistSendDiscord()) {
+            String discordChannel = McmeModeration.getConfig().getWatchlistDiscordChannel();
             DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+addPlayer+".**\nReason: **"+reason+"**",
-                    ModerationProxy.getPlugin().getConfig().isWatchlistPingModerators());
+                    McmeModeration.getConfig().isWatchlistPingModerators());
         }
         return 0;
     }
 
     private int removePlayer(McmeCommandSender commandSender, String removePlayer) {
-        WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(removePlayer);
+        WatchlistPlayerData data = McmeModeration.getWatchlistManager().getWatchlistData(removePlayer);
         if(data != null) {
-            ModerationProxy.getPlugin().getWatchlistManager().removeWatchlist(removePlayer);
+            McmeModeration.getWatchlistManager().removeWatchlist(removePlayer);
             commandSender.sendInfo(Component.text("Removed ")
                     .append(Component.text(removePlayer).color(Style.INFO_STRESSED))
                     .append(Component.text(" from watchlist.").color(Style.INFO)));
@@ -251,16 +251,16 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     }
 
     private int removeReason(McmeCommandSender commandSender, String player, Integer reason) {
-        WatchlistPlayerData data = ModerationProxy.getPlugin().getWatchlistManager().getWatchlistData(player);
+        WatchlistPlayerData data = McmeModeration.getWatchlistManager().getWatchlistData(player);
         if(data != null) {
             if (reason > data.getReasons().size()) {
                 commandSender.sendError(Component.text("Player does not have that many reasons."));
             } else {
                 if(data.getReasons().size()>1) {
-                    ModerationProxy.getPlugin().getWatchlistManager().removeWatchlistReason(player, reason - 1);
+                    McmeModeration.getWatchlistManager().removeWatchlistReason(player, reason - 1);
                     commandSender.sendInfo(Component.text("Watchlist reason removed from player '" + player + "'."));
                 } else {
-                    ModerationProxy.getPlugin().getWatchlistManager().removeWatchlist(player);
+                    McmeModeration.getWatchlistManager().removeWatchlist(player);
                     commandSender.sendInfo(Component.text("Removed ")
                                                     .append(Component.text(player).color(Style.INFO_STRESSED))
                                                     .append(Component.text(" from watchlist as you removed the last reason for him to be there.").color(Style.INFO)));

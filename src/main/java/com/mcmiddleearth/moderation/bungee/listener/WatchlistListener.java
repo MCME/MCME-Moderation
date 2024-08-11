@@ -17,7 +17,7 @@
 package com.mcmiddleearth.moderation.bungee.listener;
 
 import com.mcmiddleearth.base.bungee.player.BungeeMcmePlayer;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
+import com.mcmiddleearth.moderation.core.McmeModeration;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -32,8 +32,8 @@ public class WatchlistListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void playerJoin(ServerConnectEvent event) {
         if(event.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
-            ModerationProxy.getPlugin().getWatchlistManager()
-                    .processPlayerJoin(new BungeeMcmePlayer(ModerationProxy.getPlugin(), event.getPlayer()));
+            McmeModeration.getWatchlistManager()
+                    .processPlayerJoin(new BungeeMcmePlayer(McmeModeration.getPlugin(), event.getPlayer()));
         }
     }
 }

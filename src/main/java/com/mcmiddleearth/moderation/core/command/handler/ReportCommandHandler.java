@@ -17,17 +17,17 @@
 package com.mcmiddleearth.moderation.core.command.handler;
 
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextDecoration;
+import com.mcmiddleearth.moderation.core.McmeModeration;
+import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulRequiredArgumentBuilder;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
-import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 import com.mojang.brigadier.CommandDispatcher;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 
 /**
  * @author Eriol_Eandur
@@ -60,18 +60,18 @@ public class ReportCommandHandler extends AbstractCommandHandler {
                 .append(Component.text(player).color(Style.INFO_STRESSED).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
                 .append(Component.text("\nReason: ").color(Style.INFO).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
                 .append(Component.text(reason).color(Style.HELP));//.bold(true).italic(true);
-        if(ModerationProxy.getPlugin().getConfig().isReportSendIngame()) {
-            ModerationProxy.getInstance().getPlayers().stream()
+        if(McmeModeration.getConfig().isReportSendIngame()) {
+            McmeModeration.getPlugin().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT))
                     .forEach(moderator -> moderator.sendInfo(message));
         }
-        if(ModerationProxy.getPlugin().getConfig().isReportAddToWatchlist()) {
-            ModerationProxy.getPlugin().getWatchlistManager().addWatchlist(player, commandSender, reason);
+        if(McmeModeration.getConfig().isReportAddToWatchlist()) {
+            McmeModeration.getWatchlistManager().addWatchlist(player, commandSender, reason);
         }
-        if(ModerationProxy.getPlugin().getConfig().isReportSendDiscord()) {
-            String discordChannel = ModerationProxy.getPlugin().getConfig().getReportDiscordChannel();
+        if(McmeModeration.getConfig().isReportSendDiscord()) {
+            String discordChannel = McmeModeration.getConfig().getReportDiscordChannel();
             DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**",
-                    ModerationProxy.getPlugin().getConfig().isReportPingModerators());
+                    McmeModeration.getConfig().isReportPingModerators());
         }
         commandSender.sendInfo(Component.text("Your report has been sent to the moderation team."));
         return 0;

@@ -18,24 +18,23 @@ package com.mcmiddleearth.moderation.bungee;
 
 import com.mcmiddleearth.base.bungee.AbstractBungeePlugin;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.net.kyori.adventure.platform.bungeecord.BungeeAudiences;
+import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
 import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
-import com.mcmiddleearth.moderation.core.ModerationPlugin;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
+import com.mcmiddleearth.moderation.core.McmeModeration;
+import com.mcmiddleearth.moderation.core.McmeModerationConfig;
 import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.command.handler.ReportCommandHandler;
 import com.mcmiddleearth.moderation.core.command.handler.WatchlistCommandHandler;
-import com.mcmiddleearth.moderation.core.configuration.ModerationConfig;
-import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
 import com.mojang.brigadier.CommandDispatcher;
-import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
-import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -46,26 +45,21 @@ import java.util.logging.Logger;
  */
 
 
-public class ModerationPluginBungee extends AbstractBungeePlugin implements ModerationPlugin, Listener {
+public class ModerationPluginBungee extends AbstractBungeePlugin implements Listener {
     
-    private static ModerationConfig config;
-
     BungeeAudiences adventure = null;
 
     private final CommandDispatcher<McmeCommandSender> commandDispatcher = new CommandDispatcher<>();
     private final Set<ModerationPluginCommandBungee> commands = new HashSet<>();
 
-    private static WatchlistManager watchlistManager;
-
     @Override
     public void onEnable() {
         //todo: replace adventure by Base plugin adventure
         adventure = BungeeAudiences.create(this);
-        ModerationProxy.setPlugin(this);
-        ModerationProxy.setInstance(new ModerationProxyBungee());
+        File configFile = new File(getDataFolder(), McmeModerationConfig.FILE_NAME);
+        saveResourceToFile(McmeModerationConfig.FILE_NAME, configFile);
 
-        ModerationConfig.saveDefaultConfig(getDataFolder());
-        config = new ModerationConfig(ModerationConfig.getConfigFile(getDataFolder()));
+        McmeModeration.enable(this);
 
         commands.add(new ModerationPluginCommandBungee(commandDispatcher,
                 new WatchlistCommandHandler("watchlist", Permission.WATCHLIST, commandDispatcher)));
@@ -78,7 +72,6 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements Mode
         //Listener for tab complete
         ProxyServer.getInstance().getPluginManager().registerListener(this,this);
         ProxyServer.getInstance().getPluginManager().registerListener(this, new WatchlistListener());
-        watchlistManager = new WatchlistManager(getDataFolder());
         Logger.getGlobal().info("Enabled Moderation plugin! sent to global logger.");
         adventure.console().sendMessage(Component.text("Enabled Moderation plugin! Sent to audience.console"));
     }
@@ -86,6 +79,7 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements Mode
     @Override
     public void onDisable() {
         //maybe TODO: e.g. cancel scheduled tasks.
+        McmeModeration.disable();
         adventure.close();
     }
 
@@ -111,22 +105,16 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements Mode
         recipient.sendMessage(result.create());
     }*/
 
-    @Override
-    public ModerationConfig getConfig() {
-        return config;
-    }
-
-    @Override
-    public WatchlistManager getWatchlistManager() {
-        return watchlistManager;
-    }
-
     public boolean isOnWatchlist(ProxiedPlayer player) {
-        return getWatchlistManager().isOnWatchlist(player.getName());
+        return McmeModeration.getWatchlistManager().isOnWatchlist(player.getName());
     }
 
     public String getTablistPrefix() {
-        return getConfig().getWatchlistTablistPrefix();
+        return McmeModeration.getConfig().getWatchlistTablistPrefix();
     }
 
+    @Override
+    public Component getMessagePrefix() {
+        return McmeModeration.getMessagePrefix();
+    }
 }

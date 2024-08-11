@@ -18,13 +18,13 @@ package com.mcmiddleearth.moderation.core.watchlist;
 
 import com.google.common.base.Joiner;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.configuration.YamlConfiguration;
 import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
-import com.mcmiddleearth.moderation.core.Style;
-import com.mcmiddleearth.moderation.core.ModerationProxy;
+import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
+import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.Permission;
-import com.mcmiddleearth.moderation.core.configuration.YamlBridge;
+import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
-import net.kyori.adventure.text.Component;
 
 import java.io.File;
 import java.net.InetAddress;
@@ -52,8 +52,9 @@ public class WatchlistManager {
     public WatchlistManager(File dataFolder) {
         dataFile = new File(dataFolder,"watchlist.yml");
         if(dataFile.exists()) {
-            YamlBridge yaml = new YamlBridge();
-            yaml.load(dataFile);
+            //YamlBridge yaml = new YamlBridge();
+            //yaml.load(dataFile);
+            YamlConfiguration yaml = new YamlConfiguration(dataFile);
             yaml.getMap().forEach((name, data) -> watchlist.put(name, new WatchlistPlayerData((Map<String, Object>) data)));
         }
     }
@@ -88,7 +89,8 @@ public class WatchlistManager {
      * Saves the watchlist to watchlist.yml. Should be called each time the watchlist is modified.
      */
     public void saveToFile() {
-        YamlBridge yaml = new YamlBridge();
+        //YamlBridge yaml = new YamlBridge();
+        YamlConfiguration yaml = new YamlConfiguration();
         watchlist.forEach(((name, watchlistPlayerData) -> yaml.set(name,watchlistPlayerData.serialize())));
         yaml.save(dataFile);
     }
@@ -171,7 +173,7 @@ public class WatchlistManager {
     }
 
     public String getIp(UUID uuid) {
-        McmeProxyPlayer player = ModerationProxy.getInstance().getPlayer(uuid);
+        McmeProxyPlayer player = McmeModeration.getPlugin().getPlayer(uuid);
         if(player != null) {
             SocketAddress address =player.getSocketAddress();
             if(address instanceof InetSocketAddress) {
@@ -215,7 +217,7 @@ public class WatchlistManager {
 
     public Collection<WatchlistPlayerData> getWatchedAliases(String playerName) {
         //WatchlistPlayerData playerData = watchlist.get(player);
-        McmeProxyPlayer player = ModerationProxy.getInstance().getPlayer(playerName);
+        McmeProxyPlayer player = McmeModeration.getPlugin().getPlayer(playerName);
         if(player!=null) {
             return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
                             && watchlistPlayerData.getIp().equals(getIp(player.getUniqueId())))
@@ -230,55 +232,57 @@ public class WatchlistManager {
     }
 
     public void processPlayerJoin(McmeProxyPlayer player) {
-        ModerationProxy.getPlugin().getWatchlistManager().addKnownPlayer(player);
+        McmeModeration.getWatchlistManager().addKnownPlayer(player);
 
         //handle name changes of players
-        ModerationProxy.getPlugin().getWatchlistManager().updateWatchlist(player);
+        McmeModeration.getWatchlistManager().updateWatchlist(player);
 
-        if(ModerationProxy.getPlugin().getWatchlistManager().isOnWatchlist(player.getName())) {
-            ModerationProxy.getInstance().schedule(ModerationProxy.getPlugin(), () -> {
-                Component message = Component.text(Style.INFO + "Watched player " + Style.INFO_STRESSED + player.getName()
-                        + Style.INFO + " joined.");
+        if(McmeModeration.getWatchlistManager().isOnWatchlist(player.getName())) {
+            McmeModeration.getPlugin().getTask( () -> {
+                Component message = Component.text("Watched player ").color(Style.INFO)
+                        .append(Component.text(player.getName()).color(Style.INFO_STRESSED))
+                                .append(Component.text(" joined.").color(Style.INFO));
 
-                if (ModerationProxy.getPlugin().getConfig().isWatchlistPlayerJoinNotificationIngame()) {
-                    ModerationProxy.getInstance().getPlayers().stream()
+                if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
+                    McmeModeration.getPlugin().getPlayers().stream()
                             .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
                             .forEach(moderator -> moderator.sendInfo(message));
                 }
-                if (ModerationProxy.getPlugin().getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
-                    String discordChannel = ModerationProxy.getPlugin().getConfig().getWatchlistDiscordChannel();
+                if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
+                    String discordChannel = McmeModeration.getConfig().getWatchlistDiscordChannel();
                     DiscordUtil.sendDiscord(discordChannel, "Watched player **" + player.getName() + "** joined the server.",
-                            ModerationProxy.getPlugin().getConfig().isWatchlistPingModerators());
+                            McmeModeration.getConfig().isWatchlistPingModerators());
                 }
-            }, 5, TimeUnit.SECONDS);
-        }  else if(ModerationProxy.getPlugin().getWatchlistManager().hasWatchedIp(player)) {
+            }).schedule(5, TimeUnit.SECONDS);
+        }  else if(McmeModeration.getWatchlistManager().hasWatchedIp(player)) {
             Collection<WatchlistPlayerData> aliases
-                    = ModerationProxy.getPlugin().getWatchlistManager().getWatchedAliases(player.getName());
+                    = McmeModeration.getWatchlistManager().getWatchedAliases(player.getName());
             String reason = "Alt of "+ Joiner.on(", ").join(aliases.stream().map(alias -> {
                 if(alias.isNameUnknown()) {
                     return alias.getUuid().toString();
                 } else {
-                    return ModerationProxy.getPlugin().getWatchlistManager().getName(alias)+" ("+alias.getUuid().toString()+")";
+                    return McmeModeration.getWatchlistManager().getName(alias)+" ("+alias.getUuid().toString()+")";
                 }
             }).toArray());
-            ModerationProxy.getPlugin().getWatchlistManager().addWatchlist(player.getName(),
+            McmeModeration.getWatchlistManager().addWatchlist(player.getName(),
                     null,
                     reason);
-            ModerationProxy.getInstance().schedule(ModerationProxy.getPlugin(), () -> {
-                if (ModerationProxy.getPlugin().getConfig().isWatchlistPlayerJoinNotificationIngame()) {
-                    Component message = Component.text(Style.INFO + "Player " + Style.INFO_STRESSED + player.getName()
-                            + Style.INFO + " joined and was put on Watchlist because he's an "+reason);
-                    ModerationProxy.getInstance().getPlayers().stream()
+            McmeModeration.getPlugin().getTask( () -> {
+                if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
+                    Component message = Component.text("Player ").color(Style.INFO)
+                                .append(Component.text(player.getName()).color(Style.INFO_STRESSED))
+                                .append(Component.text(" joined and was put on Watchlist because he's an "+reason).color(Style.INFO));
+                    McmeModeration.getPlugin().getPlayers().stream()
                             .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
                             .forEach(moderator -> moderator.sendInfo(message));
                 }
-                if (ModerationProxy.getPlugin().getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
-                    String discordChannel = ModerationProxy.getPlugin().getConfig().getWatchlistDiscordChannel();
+                if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
+                    String discordChannel = McmeModeration.getConfig().getWatchlistDiscordChannel();
                     DiscordUtil.sendDiscord(discordChannel, "Player **" + player.getName()
                                     + "** joined the server and was put on Watchlist because he's an "+reason,
-                            ModerationProxy.getPlugin().getConfig().isWatchlistPingModerators());
+                            McmeModeration.getConfig().isWatchlistPingModerators());
                 }
-            }, 5, TimeUnit.SECONDS);
+            }).schedule(5, TimeUnit.SECONDS);
         }
     }
 }

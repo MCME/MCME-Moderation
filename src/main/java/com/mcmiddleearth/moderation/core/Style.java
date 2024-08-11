@@ -1,7 +1,7 @@
 package com.mcmiddleearth.moderation.core;
 
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.NamedTextColor;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextColor;
 
 public class Style {
 

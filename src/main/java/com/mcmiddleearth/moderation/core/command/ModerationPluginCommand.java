@@ -2,6 +2,11 @@ package com.mcmiddleearth.moderation.core.command;
 
 import com.google.common.base.Joiner;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
+import com.mcmiddleearth.base.net.kyori.adventure.text.ComponentBuilder;
+import com.mcmiddleearth.base.net.kyori.adventure.text.event.HoverEvent;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.NamedTextColor;
+import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextDecoration;
 import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
 import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.node.HelpfulNode;
@@ -12,16 +17,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class ModerationPluginCommand {
 
@@ -47,7 +47,7 @@ public class ModerationPluginCommand {
                         && (result.getContext().getCommand()==null
                         || result.getContext().getRange().getEnd() < result.getReader().getString().length())) {
                     //check for possible child nodes to collect suggestions and bake better error message
-                    TextComponent helpMessage;
+                    Component helpMessage = Component.text("TEST").append(Component.text("again"));
                     boolean help = false;
                     String parsedCommand = "/" + result.getReader().getString()
                             .substring(0, result.getContext().getRange().getEnd());
@@ -55,7 +55,7 @@ public class ModerationPluginCommand {
                         helpMessage = Component.text("Help for command "+parsedCommand+":").color(Style.INFO);
                         help = true;
                     } else {
-                        helpMessage = Component.text("Invalid command syntax.").color(Style.ERROR);
+                        helpMessage = Component.text("Invalid command syntax.").append(Component.text("test"));
                     }
                     CommandNode<McmeCommandSender> parsedNode = result.getContext().getNodes().get(result.getContext().getNodes().size() - 1).getNode();
 //Logger.getGlobal().info("Parsed Node:");
@@ -67,7 +67,7 @@ public class ModerationPluginCommand {
                         if (result.getContext().getCommand() == null) {
                             helpMessage = helpMessage.append(Component.text(" Maybe you don't have permission."));
                         } else if(!help) {
-                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:\n")).append(Component.text(parsedCommand).color(Style.INFO));
+                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:"+"\n")).append(Component.text(parsedCommand).color(Style.INFO));
                         }
                     } else {
                         if(!help) {
@@ -122,7 +122,7 @@ public class ModerationPluginCommand {
                             }
                             if(!usageMessage.equals("")) {
                                 helpMessage = helpMessage.append(Component.text(" : "+usageMessage).color(Style.HELP))
-                                        .hoverEvent(HoverEvent.showText(Component.text(" ")));
+                                       .hoverEvent(HoverEvent.showText(Component.text(" ")));
                             }
                         }
                     }
