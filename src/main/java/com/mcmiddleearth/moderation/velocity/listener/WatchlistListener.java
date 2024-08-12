@@ -12,7 +12,7 @@ public class WatchlistListener {
     public void onPlayerJoin(ServerPreConnectEvent event) {
         if(event.getPreviousServer()==null) {
             McmeModeration.getWatchlistManager()
-                    .processPlayerJoin(new VelocityMcmePlayer(McmeModeration.getPlugin(), event.getPlayer()));
+                    .processPlayerJoin(new VelocityMcmePlayer(event.getPlayer()));
         }
     }
 }

@@ -26,7 +26,7 @@ public class ModerationPluginCommandBungee extends Command {
 
     @Override
     public void execute(CommandSender commandSender, String[] args) {
-        moderationCommand.execute(new BungeeMcmeCommandSender(McmeModeration.getPlugin(), commandSender),getName(), args);
+        moderationCommand.execute(new BungeeMcmeCommandSender(commandSender),getName(), args);
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ModerationPluginCommandBungee extends Command {
 
     public void onTabComplete(TabCompleteEvent event) {
         if (event.getSender() instanceof CommandSender commandSender) {
-            McmeCommandSender sender = new BungeeMcmeCommandSender(McmeModeration.getPlugin(), commandSender);
+            McmeCommandSender sender = new BungeeMcmeCommandSender(commandSender);
             List<String> suggestions = moderationCommand.getSuggestions(sender, event.getCursor().substring(1));
             if (suggestions.isEmpty()) {
                 event.setCancelled(true);

@@ -19,11 +19,11 @@ package com.mcmiddleearth.moderation.core.watchlist;
 import com.google.common.base.Joiner;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.base.core.configuration.YamlConfiguration;
+import com.mcmiddleearth.base.core.message.McmeColors;
+import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.core.player.McmeProxyPlayer;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
 import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.Permission;
-import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 
 import java.io.File;
@@ -52,16 +52,10 @@ public class WatchlistManager {
     public WatchlistManager(File dataFolder) {
         dataFile = new File(dataFolder,"watchlist.yml");
         if(dataFile.exists()) {
-            //YamlBridge yaml = new YamlBridge();
-            //yaml.load(dataFile);
             YamlConfiguration yaml = new YamlConfiguration(dataFile);
             yaml.getMap().forEach((name, data) -> watchlist.put(name, new WatchlistPlayerData((Map<String, Object>) data)));
         }
     }
-
-    /*public WatchlistPlayerData getPlayerData(String name) {
-        return watchlist.get(name);
-    }*/
 
     /**
      * This method is required for TabList feature in MCME-Connect plugin
@@ -113,7 +107,7 @@ public class WatchlistManager {
         //get a list of watchlist entries with same uuid as joining player
         List<Map.Entry<String,WatchlistPlayerData>> uuidMatches = watchlist.entrySet().stream()
                      .filter(entry -> !entry.getValue().isUuidUnknown() && entry.getValue().getUuid().equals(player.getUniqueId()))
-                     .collect(Collectors.toList());
+                     .toList();
         if(uuidMatches.size()>0) {
             Map.Entry<String,WatchlistPlayerData> firstMatch = uuidMatches.get(0);
 
@@ -154,9 +148,6 @@ public class WatchlistManager {
 
     public void addKnownPlayer(McmeProxyPlayer player) {
         knownPlayers.put(player.getName(),player.getUniqueId());
-//for(String name: knownPlayers.keySet()) {
-//    Logger.getGlobal().info("Known: "+name+" "+knownPlayers.get(name));
-//}
     }
 
     public boolean isKnown(String name) {
@@ -173,7 +164,7 @@ public class WatchlistManager {
     }
 
     public String getIp(UUID uuid) {
-        McmeProxyPlayer player = McmeModeration.getPlugin().getPlayer(uuid);
+        McmeProxyPlayer player = McmeModeration.getProxy().getPlayer(uuid);
         if(player != null) {
             SocketAddress address =player.getSocketAddress();
             if(address instanceof InetSocketAddress) {
@@ -217,7 +208,7 @@ public class WatchlistManager {
 
     public Collection<WatchlistPlayerData> getWatchedAliases(String playerName) {
         //WatchlistPlayerData playerData = watchlist.get(player);
-        McmeProxyPlayer player = McmeModeration.getPlugin().getPlayer(playerName);
+        McmeProxyPlayer player = McmeModeration.getProxy().getPlayer(playerName);
         if(player!=null) {
             return watchlist.values().stream().filter(watchlistPlayerData -> !watchlistPlayerData.getIp().equals("unknown")
                             && watchlistPlayerData.getIp().equals(getIp(player.getUniqueId())))
@@ -239,14 +230,14 @@ public class WatchlistManager {
 
         if(McmeModeration.getWatchlistManager().isOnWatchlist(player.getName())) {
             McmeModeration.getPlugin().getTask( () -> {
-                Component message = Component.text("Watched player ").color(Style.INFO)
-                        .append(Component.text(player.getName()).color(Style.INFO_STRESSED))
-                                .append(Component.text(" joined.").color(Style.INFO));
+                Message message = McmeModeration.infoMessage().add("Watched player ")
+                        .add(player.getName(), McmeColors.INFO_STRESSED)
+                        .add(" joined.");
 
                 if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
-                    McmeModeration.getPlugin().getPlayers().stream()
+                    McmeModeration.getProxy().getPlayers().stream()
                             .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
-                            .forEach(moderator -> moderator.sendInfo(message));
+                            .forEach(moderator -> moderator.sendMessage(message));
                 }
                 if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
                     String discordChannel = McmeModeration.getConfig().getWatchlistDiscordChannel();
@@ -269,12 +260,12 @@ public class WatchlistManager {
                     reason);
             McmeModeration.getPlugin().getTask( () -> {
                 if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationIngame()) {
-                    Component message = Component.text("Player ").color(Style.INFO)
-                                .append(Component.text(player.getName()).color(Style.INFO_STRESSED))
-                                .append(Component.text(" joined and was put on Watchlist because he's an "+reason).color(Style.INFO));
-                    McmeModeration.getPlugin().getPlayers().stream()
+                    Message message = McmeModeration.infoMessage().add("Player ")
+                                .add(player.getName(), McmeColors.INFO_STRESSED)
+                                .add(" joined and was put on Watchlist because he's an "+reason);
+                    McmeModeration.getProxy().getPlayers().stream()
                             .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST))
-                            .forEach(moderator -> moderator.sendInfo(message));
+                            .forEach(moderator -> moderator.sendMessage(message));
                 }
                 if (McmeModeration.getConfig().isWatchlistPlayerJoinNotificationDiscord()) {
                     String discordChannel = McmeModeration.getConfig().getWatchlistDiscordChannel();

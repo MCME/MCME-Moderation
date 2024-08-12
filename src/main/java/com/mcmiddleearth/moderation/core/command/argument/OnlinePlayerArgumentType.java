@@ -35,7 +35,7 @@ public class OnlinePlayerArgumentType extends AbstractPlayerArgumentType {
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
         String o = reader.readUnquotedString();
-        if (McmeModeration.getPlugin().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet()).contains(o)) {
+        if (McmeModeration.getProxy().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet()).contains(o)) {
             return o;
         }
         throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of OnlinePlayerArgument")),
@@ -44,7 +44,7 @@ public class OnlinePlayerArgumentType extends AbstractPlayerArgumentType {
 
     @Override
     protected Collection<String> getPlayerSuggestions() {
-        return McmeModeration.getPlugin().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet());
+        return McmeModeration.getProxy().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet());
     }
 
 }

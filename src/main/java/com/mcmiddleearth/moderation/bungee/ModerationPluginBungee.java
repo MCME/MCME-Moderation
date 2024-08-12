@@ -18,6 +18,7 @@ package com.mcmiddleearth.moderation.bungee;
 
 import com.mcmiddleearth.base.bungee.AbstractBungeePlugin;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
@@ -74,6 +75,7 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
         ProxyServer.getInstance().getPluginManager().registerListener(this, new WatchlistListener());
         Logger.getGlobal().info("Enabled Moderation plugin! sent to global logger.");
         adventure.console().sendMessage(Component.text("Enabled Moderation plugin! Sent to audience.console"));
+        getMcmeProxy().getConsole().sendMessage(createInfoMessage().add("Enabled on Bungee proxy!"));
     }
 
     @Override
@@ -114,7 +116,7 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
     }
 
     @Override
-    public Component getMessagePrefix() {
+    public Message getMessagePrefix() {
         return McmeModeration.getMessagePrefix();
     }
 }

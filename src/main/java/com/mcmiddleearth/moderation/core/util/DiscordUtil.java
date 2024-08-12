@@ -16,7 +16,7 @@ public class DiscordUtil {
         out.writeUTF("Discord");
         out.writeUTF(discordChannel);
         out.writeUTF(message);
-        McmeModeration.getPlugin().getPlayers().stream().findFirst()
+        McmeModeration.getProxy().getPlayers().stream().findFirst()
                 .ifPresent(other -> other.sendDataToBackend("mcme:connect", out.toByteArray(),true));
     }
 

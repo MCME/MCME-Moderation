@@ -17,11 +17,11 @@
 package com.mcmiddleearth.moderation.core.command.handler;
 
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
-import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextDecoration;
+import com.mcmiddleearth.base.core.message.McmeColors;
+import com.mcmiddleearth.base.core.message.Message;
+import com.mcmiddleearth.base.core.message.MessageDecoration;
 import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.Permission;
-import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.ReasonArgumentType;
 import com.mcmiddleearth.moderation.core.command.builder.HelpfulLiteralBuilder;
@@ -55,15 +55,16 @@ public class ReportCommandHandler extends AbstractCommandHandler {
     }
 
     private int sendReport(McmeCommandSender commandSender, String player, String reason) {
-        Component message = Component.text(commandSender.getName()).color(Style.INFO_STRESSED)//.bold(true).italic(true)
-                .append(Component.text(" reported player ").color(Style.INFO))//.bold(false).italic(false)
-                .append(Component.text(player).color(Style.INFO_STRESSED).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
-                .append(Component.text("\nReason: ").color(Style.INFO).decorate(TextDecoration.BOLD).decorate(TextDecoration.ITALIC))
-                .append(Component.text(reason).color(Style.HELP));//.bold(true).italic(true);
+        Message message = McmeModeration.infoMessage()
+                .add(commandSender.getName(), McmeColors.INFO_STRESSED)//.bold(true).italic(true)
+                .add(" reported player ") //McmeColors.INFO))//.bold(false).italic(false)
+                .add(player, McmeColors.INFO_STRESSED, MessageDecoration.BOLD, MessageDecoration.ITALIC)
+                .add("\nReason: ")//, MessageDecoration.BOLD, MessageDecoration.ITALIC)
+                .add(reason, McmeColors.HELP);//.bold(true).italic(true);
         if(McmeModeration.getConfig().isReportSendIngame()) {
-            McmeModeration.getPlugin().getPlayers().stream()
+            McmeModeration.getProxy().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_REPORT))
-                    .forEach(moderator -> moderator.sendInfo(message));
+                    .forEach(moderator -> moderator.sendMessage(message));
         }
         if(McmeModeration.getConfig().isReportAddToWatchlist()) {
             McmeModeration.getWatchlistManager().addWatchlist(player, commandSender, reason);
@@ -73,7 +74,7 @@ public class ReportCommandHandler extends AbstractCommandHandler {
             DiscordUtil.sendDiscord(discordChannel,"**"+commandSender.getName()+"** reported player **"+player+".**\nReason: **"+reason+"**",
                     McmeModeration.getConfig().isReportPingModerators());
         }
-        commandSender.sendInfo(Component.text("Your report has been sent to the moderation team."));
+        commandSender.sendMessage(McmeModeration.infoMessage("Your report has been sent to the moderation team."));
         return 0;
     }
 

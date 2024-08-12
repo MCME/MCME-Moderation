@@ -18,9 +18,9 @@ package com.mcmiddleearth.moderation.core.command.handler;
 
 
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.message.*;
 import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.Permission;
-import com.mcmiddleearth.moderation.core.Style;
 import com.mcmiddleearth.moderation.core.command.argument.KnownPlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.OfflinePlayerArgumentType;
 import com.mcmiddleearth.moderation.core.command.argument.PageArgumentType;
@@ -31,11 +31,6 @@ import com.mcmiddleearth.moderation.core.util.DiscordUtil;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistPlayerData;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistReason;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
-import com.mcmiddleearth.base.net.kyori.adventure.text.event.ClickEvent;
-import com.mcmiddleearth.base.net.kyori.adventure.text.event.HoverEvent;
-import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextColor;
-import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextDecoration;
 
 import java.text.DateFormat;
 import java.util.*;
@@ -118,42 +113,44 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
     private int viewDetails(McmeCommandSender commandSender, String showPlayer) {
         WatchlistPlayerData data = McmeModeration.getWatchlistManager().getWatchlistData(showPlayer);
         if(data != null) {
-            Component message = Component.text("Watchlist reasons for ")
-                    .append(Component.text(showPlayer,Style.INFO_STRESSED))
-                    .append(Component.text(":",Style.INFO));
+            Message message = McmeModeration.infoMessage("Watchlist reasons for ")
+                    .add(showPlayer, McmeColors.INFO_STRESSED)
+                    .add(":");
             for(int i = 0; i < data.getReasons().size(); i++) {
                 WatchlistReason reason = data.getReasons().get(i);
-                message = message.append(Component.text("\n[" + (i+1) + "] "))
-                        .append(Component.text(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US)
-                                .format(reason.getCreationTime()),Style.INFO_LIGHT))
-                        .append(Component.text(" (",Style.INFO))
-                        .append(Component.text("by "+reason.getInitiator(), (reason.isByModerator() ? Style.MOD : Style.UNCONFIRMED)))
-                        .append(Component.text(") "+reason.getDescription(),Style.INFO));
+                message.add("\n[" + (i+1) + "] ")
+                        .add(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.US)
+                                .format(reason.getCreationTime()),McmeColors.INFO_LIGHT)
+                        .add(" (")
+                        .add("by "+reason.getInitiator(), (reason.isByModerator() ? McmeColors.MOD : McmeColors.UNCONFIRMED))
+                        .add(") "+reason.getDescription());
                 if (!reason.getNameAtCreationTime().equals(showPlayer)) {
-                    message = message.append(Component.text(" (player name at time of report: "+reason.getNameAtCreationTime()+")",Style.WARNING));
+                    message.add(" (player name at time of report: "+reason.getNameAtCreationTime()+")",McmeColors.WARNING);
                 }
             }
-            commandSender.sendInfo(message);
+            commandSender.sendMessage(message);
         } else {
-            commandSender.sendError(Component.text("Player not on watchlist!"));
+            commandSender.sendMessage(McmeModeration.errorMessage("Player not on watchlist!"));
         }
         return 0;
     }
 
     private int viewList(McmeCommandSender commandSender, String group, Integer page) {
         List<Map.Entry<String,WatchlistPlayerData>> displayList = getWatchlistSelection(group);
-        Component message;
+        Message message;
         if(group.equals("all")) {
-            message = Component.text("All ",Style.INFO_STRESSED,TextDecoration.BOLD)
-                    .append(Component.text("players on watchlist",Style.INFO));
+            message = McmeModeration.infoMessage()
+                    .add("All ",McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
+                    .add("players on watchlist");
         } else {
             if(group.equals("online")) {
-                message =Component.text("Online ",Style.INFO_STRESSED, TextDecoration.BOLD)
-                        .append(Component.text("players on watchlist",Style.INFO));
+                message =McmeModeration.infoMessage()
+                        .add("Online ",McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
+                        .add("players on watchlist");
             } else {
-                message = Component.text("Players on watchlist matching '",Style.INFO)
-                        .append(Component.text(group,Style.INFO_STRESSED,TextDecoration.BOLD))
-                        .append(Component.text("'",Style.INFO));
+                message = McmeModeration.infoMessage("Players on watchlist matching '")
+                        .add(group,McmeColors.INFO_STRESSED,MessageDecoration.BOLD)
+                        .add("'");
             }
         }
         //message = message +  " (page "+Style.INFO_STRESSED+page+Style.INFO+" of "+(displayList.size()/10+1)+")";
@@ -161,41 +158,51 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         if((page) > maxPage) {
             page = maxPage;
         }
-        message = message.append(Component.text(" (page "));
+        message.add(" (page ");
         if(page > 1) {
-            message = message.append(Component.text("<", Style.INFO_STRESSED, TextDecoration.BOLD))
-                   .clickEvent(ClickEvent.runCommand("/watchlist list " + (page - 1)))
-                   .hoverEvent(HoverEvent.showText(Component.text("Click for previous page.").color(Style.TOOLTIP)));
+            Message clickMessage = McmeModeration.infoMessage().add("<", McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
+                   .addClick(new MessageClickEvent(MessageClickEvent.Action.RUN_COMMAND,
+                                                   "/watchlist list " + (page - 1)))
+                   .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                             McmeModeration.getPlugin().createMessage().add("Click for previous page.", McmeColors.TOOLTIP)));
+            message.add(clickMessage);
         }
-        message = message.append(Component.text(""+page, Style.INFO, TextDecoration.BOLD));
+        message = message.add(""+page, MessageDecoration.BOLD);
         if(page < maxPage) {
-            message = message.append(Component.text(">",Style.INFO_STRESSED, TextDecoration.BOLD))
-                    .clickEvent(ClickEvent.runCommand("/watchlist list " + (page + 1)))
-                    .hoverEvent(HoverEvent.showText(Component.text("Click for next page.",Style.TOOLTIP)));
+            Message clickMessage = McmeModeration.infoMessage().add(">",McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
+                    .addClick(new MessageClickEvent(MessageClickEvent.Action.RUN_COMMAND,
+                                            "/watchlist list " + (page + 1)))
+                    .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                            McmeModeration.getPlugin().createMessage().add("Click for next page.",McmeColors.TOOLTIP)));
+            message.add(clickMessage);
         }
-        message = message.append(Component.text(" of "+maxPage+")",Style.INFO, TextDecoration.BOLD));
+        message.add(" of "+maxPage+")", MessageDecoration.BOLD);
         if(displayList.size()>0) {
 //Logger.getGlobal().info("all: "+ModerationPluginBungee.getWatchlistManager().getWatchlist().size()+" Size: "+displayList.size());
             for (int i = (page-1) * 10; i < Math.min((page-1) * 10 + 10, displayList.size()); i++) {
 //Logger.getGlobal().info("Count: "+i);
                 String name = displayList.get(i).getKey();
                 UUID uuid = displayList.get(i).getValue().getUuid();
-                TextColor color = Style.MOD;
+                MessageColor color = McmeColors.MOD;
                 if (displayList.get(i).getValue().isUuidUnknown()) {
                     name = name + " (unconfirmed)";
-                    color = Style.UNCONFIRMED;
+                    color = McmeColors.UNCONFIRMED;
                 } else if(displayList.get(i).getValue().isNameUnknown()) {
-                    color = Style.WARNING;
+                    color = McmeColors.WARNING;
                 }
-                message = message.append(Component.text("\n- ",Style.INFO)
-                        .append(Component.text(name,color).clickEvent(ClickEvent.runCommand("/watchlist " + displayList.get(i).getKey())))
-                        .hoverEvent(HoverEvent.showText(Component.text("Click for details.",Style.TOOLTIP)))
-                        .append(Component.text(" "+(uuid!=null?uuid.toString():"unknown UUID"),Style.INFO)));
+                message.add("\n- ");
+                Message clickMessage = McmeModeration.infoMessage().add(name,color)
+                        .addClick(new MessageClickEvent(MessageClickEvent.Action.RUN_COMMAND,
+                                                        "/watchlist " + displayList.get(i).getKey()))
+                        .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                                McmeModeration.getPlugin().createMessage().add("Click for details.",McmeColors.TOOLTIP)));
+                message.add(clickMessage);
+                message.add(" "+(uuid!=null?uuid.toString():"unknown UUID"));
             }
         } else {
-            message = message.append(Component.text("\n- no Players - ",Style.INFO));
+            message = message.add("\n- no Players - ");
         }
-        commandSender.sendInfo(message);
+        commandSender.sendMessage(message);
         return 0;
     }
 
@@ -206,7 +213,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
             selectionList = watchlist.entrySet().stream().sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
         } else {
             if(selection.equals("online")) {
-                selectionList = watchlist.entrySet().stream().filter(entry -> McmeModeration.getPlugin().getPlayer(entry.getKey())!=null)
+                selectionList = watchlist.entrySet().stream().filter(entry -> McmeModeration.getProxy().getPlayer(entry.getKey())!=null)
                         .sorted(Comparator.comparing(entry -> entry.getKey().toLowerCase())).collect(Collectors.toList());
             } else {
                 selectionList = watchlist.entrySet().stream().filter(entry -> entry.getKey().toLowerCase().contains(selection.toLowerCase()))
@@ -218,16 +225,16 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
 
     private int addPlayer(McmeCommandSender commandSender, String addPlayer, String reason) {
         McmeModeration.getWatchlistManager().addWatchlist(addPlayer, commandSender, reason);
-        commandSender.sendInfo(Component.text("Added ")
-                .append(Component.text(addPlayer).color(Style.INFO_STRESSED))
-                .append(Component.text(" to watchlist for '"+reason+"'").color(Style.INFO)));
-        Component message = Component.text(commandSender.getName()+" added ")
-                .append(Component.text(addPlayer).color(Style.INFO_STRESSED))
-                .append(Component.text(" to watchlist for '"+reason+"'").color(Style.INFO));
+        commandSender.sendMessage(McmeModeration.infoMessage("Added ")
+                .add(addPlayer, McmeColors.INFO_STRESSED)
+                .add(" to watchlist for '"+reason+"'"));
+        Message message = McmeModeration.infoMessage(commandSender.getName()+" added ")
+                .add(addPlayer, McmeColors.INFO_STRESSED)
+                .add(" to watchlist for '"+reason+"'");
         if(McmeModeration.getConfig().isWatchlistSendIngame()) {
-            McmeModeration.getPlugin().getPlayers().stream()
+            McmeModeration.getProxy().getPlayers().stream()
                     .filter(moderator -> moderator.hasPermission(Permission.SEE_WATCHLIST) && !moderator.equals(commandSender))
-                    .forEach(moderator -> moderator.sendInfo(message));
+                    .forEach(moderator -> moderator.sendMessage(message));
         }
         if(McmeModeration.getConfig().isWatchlistSendDiscord()) {
             String discordChannel = McmeModeration.getConfig().getWatchlistDiscordChannel();
@@ -241,11 +248,11 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         WatchlistPlayerData data = McmeModeration.getWatchlistManager().getWatchlistData(removePlayer);
         if(data != null) {
             McmeModeration.getWatchlistManager().removeWatchlist(removePlayer);
-            commandSender.sendInfo(Component.text("Removed ")
-                    .append(Component.text(removePlayer).color(Style.INFO_STRESSED))
-                    .append(Component.text(" from watchlist.").color(Style.INFO)));
+            commandSender.sendMessage(McmeModeration.infoMessage("Removed ")
+                    .add(removePlayer, McmeColors.INFO_STRESSED)
+                    .add(" from watchlist."));
         } else {
-            commandSender.sendError(Component.text("Player not on watchlist!"));
+            commandSender.sendMessage(McmeModeration.errorMessage("Player not on watchlist!"));
         }
         return 0;
     }
@@ -254,20 +261,20 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         WatchlistPlayerData data = McmeModeration.getWatchlistManager().getWatchlistData(player);
         if(data != null) {
             if (reason > data.getReasons().size()) {
-                commandSender.sendError(Component.text("Player does not have that many reasons."));
+                commandSender.sendMessage(McmeModeration.errorMessage("Player does not have that many reasons."));
             } else {
                 if(data.getReasons().size()>1) {
                     McmeModeration.getWatchlistManager().removeWatchlistReason(player, reason - 1);
-                    commandSender.sendInfo(Component.text("Watchlist reason removed from player '" + player + "'."));
+                    commandSender.sendMessage(McmeModeration.infoMessage("Watchlist reason removed from player '" + player + "'."));
                 } else {
                     McmeModeration.getWatchlistManager().removeWatchlist(player);
-                    commandSender.sendInfo(Component.text("Removed ")
-                                                    .append(Component.text(player).color(Style.INFO_STRESSED))
-                                                    .append(Component.text(" from watchlist as you removed the last reason for him to be there.").color(Style.INFO)));
+                    commandSender.sendMessage(McmeModeration.infoMessage("Removed ")
+                                                    .add(player, McmeColors.INFO_STRESSED)
+                                                    .add(" from watchlist as you removed the last reason for him to be there."));
                 }
             }
         } else {
-            commandSender.sendError(Component.text("Player not on watchlist!"));
+            commandSender.sendMessage(McmeModeration.errorMessage("Player not on watchlist!"));
         }
         return 0;
     }

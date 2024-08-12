@@ -2,6 +2,7 @@ package com.mcmiddleearth.moderation.velocity;
 
 import com.google.inject.Inject;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.velocity.AbstractVelocityPlugin;
 import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.McmeModerationConfig;
@@ -18,7 +19,6 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -61,10 +61,11 @@ public class ModerationPluginVelocity extends AbstractVelocityPlugin {
         SimpleCommand reportCommand = new ModerationPluginCommandVelocity(dispatcher,
                 new ReportCommandHandler("report", Permission.SEND_REPORT, dispatcher));
         commandManager.register(reportMeta, reportCommand);
+        getMcmeProxy().getConsole().sendMessage(createMessage().add("Enabled on Velocity proxy!"));
     }
 
     @Override
-    public Component getMessagePrefix() {
+    public Message getMessagePrefix() {
         return McmeModeration.getMessagePrefix();
     }
 }

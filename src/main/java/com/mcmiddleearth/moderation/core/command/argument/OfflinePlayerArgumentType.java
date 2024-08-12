@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class OfflinePlayerArgumentType extends AbstractPlayerArgumentType {
 
     protected Collection<String> getPlayerSuggestions() {
-        Collection<String> result = McmeModeration.getPlugin().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet());
+        Collection<String> result = McmeModeration.getProxy().getPlayers().stream().map(McmeProxyPlayer::getName).collect(Collectors.toSet());
         result.addAll(McmeModeration.getWatchlistManager().getKnownPlayers().keySet());
         result.addAll(McmeModeration.getWatchlistManager().getWatchlist().keySet());
         return result.stream().sorted().collect(Collectors.toList());

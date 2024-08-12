@@ -33,7 +33,7 @@ public class WatchlistListener implements Listener {
     public void playerJoin(ServerConnectEvent event) {
         if(event.getReason().equals(ServerConnectEvent.Reason.JOIN_PROXY)) {
             McmeModeration.getWatchlistManager()
-                    .processPlayerJoin(new BungeeMcmePlayer(McmeModeration.getPlugin(), event.getPlayer()));
+                    .processPlayerJoin(new BungeeMcmePlayer(event.getPlayer()));
         }
     }
 }

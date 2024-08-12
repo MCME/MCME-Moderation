@@ -2,13 +2,11 @@ package com.mcmiddleearth.moderation.core.command;
 
 import com.google.common.base.Joiner;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
-import com.mcmiddleearth.base.net.kyori.adventure.text.ComponentBuilder;
-import com.mcmiddleearth.base.net.kyori.adventure.text.event.HoverEvent;
-import com.mcmiddleearth.base.net.kyori.adventure.text.format.NamedTextColor;
-import com.mcmiddleearth.base.net.kyori.adventure.text.format.TextDecoration;
+import com.mcmiddleearth.base.core.message.McmeColors;
+import com.mcmiddleearth.base.core.message.Message;
+import com.mcmiddleearth.base.core.message.MessageHoverEvent;
 import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
-import com.mcmiddleearth.moderation.core.Style;
+import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.command.node.HelpfulNode;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.ParseResults;
@@ -33,73 +31,68 @@ public class ModerationPluginCommand {
 
     public void execute(McmeCommandSender sender, String name, String[] args) {
         try {
-//CommandNode<ModerationCommandSender> node = dispatcher.getRoot();
-//printTree(node);
             String message = String.format("%s %s", name, Joiner.on(' ').join(args)).trim();
             ParseResults<McmeCommandSender> result = commandDispatcher.parse(message, sender);
-//Logger.getGlobal().info("nodes "+result.getContext().getNodes().size());
-//Logger.getGlobal().info("Parsed");
             result.getExceptions().entrySet().stream()
-                    .findFirst().ifPresent(error -> sender.sendError(Component.text(error.getValue().getMessage())
-                            .color(Style.ERROR)));
+                    .findFirst().ifPresent(error -> sender.sendMessage(McmeModeration.errorMessage()
+                                                          .add(error.getValue().getMessage())));
             if(result.getExceptions().isEmpty()) {
                 if(result.getContext().getNodes().size() > 0
                         && (result.getContext().getCommand()==null
                         || result.getContext().getRange().getEnd() < result.getReader().getString().length())) {
                     //check for possible child nodes to collect suggestions and bake better error message
-                    Component helpMessage = Component.text("TEST").append(Component.text("again"));
+                    Message helpMessage;
                     boolean help = false;
                     String parsedCommand = "/" + result.getReader().getString()
                             .substring(0, result.getContext().getRange().getEnd());
                     if(result.getReader().getRemaining().trim().equals("help")){
-                        helpMessage = Component.text("Help for command "+parsedCommand+":").color(Style.INFO);
+                        helpMessage = McmeModeration.infoMessage().add("Help for command "+parsedCommand+":");
                         help = true;
                     } else {
-                        helpMessage = Component.text("Invalid command syntax.").append(Component.text("test"));
+                        helpMessage = McmeModeration.infoMessage().add("Invalid command syntax.", McmeColors.ERROR);
                     }
                     CommandNode<McmeCommandSender> parsedNode = result.getContext().getNodes().get(result.getContext().getNodes().size() - 1).getNode();
-//Logger.getGlobal().info("Parsed Node:");
-//printTree(parsedNode);
                     Collection<CommandNode<McmeCommandSender>> children = (result.getContext().getNodes().isEmpty()?new ArrayList<>(): parsedNode.getChildren()
                             .stream().filter(node -> node.canUse(result.getContext().getSource())).toList());
                     Map<CommandNode<McmeCommandSender>,String> use = commandDispatcher.getSmartUsage(parsedNode,result.getContext().getSource());
                     if (children.isEmpty()) {
                         if (result.getContext().getCommand() == null) {
-                            helpMessage = helpMessage.append(Component.text(" Maybe you don't have permission."));
+                            helpMessage.add(" Maybe you don't have permission.");
                         } else if(!help) {
-                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:"+"\n")).append(Component.text(parsedCommand).color(Style.INFO));
+                            helpMessage.add(" Maybe you want to do:"+"\n")
+                                       .add(parsedCommand);
                         }
                     } else {
                         if(!help) {
-                            helpMessage = helpMessage.append(Component.text(" Maybe you want to do:"));
+                            helpMessage.add(" Maybe you want to do:");
                         }
                         for(Map.Entry<CommandNode<McmeCommandSender>,String> entry: use.entrySet()) {
                             String usageMessage = "";
-                            helpMessage = helpMessage.append(Component.text("\n").color(Style.INFO));
+                            helpMessage.add("\n");
                             String[] visitedNodes = parsedCommand.split(" ");
                             Iterator<ParsedCommandNode<McmeCommandSender>> iterator = result.getContext().getNodes().listIterator();
                             for (String visitedNode : visitedNodes) {
-                                helpMessage = helpMessage.append(Component.text(" "+visitedNode));
+
                                 ParsedCommandNode<McmeCommandSender> node = iterator.next();
-//Logger.getGlobal().info("Visited Node:");
-//printTree(node.getNode());
-                                helpMessage = helpMessage.color((node.getNode() instanceof LiteralCommandNode ?Style.LITERAL:Style.ARGUMENT));
+                                Message nodeMessage = McmeModeration.getPlugin().createMessage().add(" "+visitedNode,
+                                                (node.getNode() instanceof LiteralCommandNode ?McmeColors.LITERAL:McmeColors.ARGUMENT));
                                 if ((node.getNode() instanceof HelpfulNode)) {
-                                    helpMessage = helpMessage.hoverEvent(HoverEvent
-                                            .showText(Component.text(((HelpfulNode) node.getNode()).getTooltip()).color(Style.TOOLTIP)));
+                                    nodeMessage = nodeMessage.addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                                            McmeModeration.getPlugin().createMessage()
+                                            .add(((HelpfulNode) node.getNode()).getTooltip(), McmeColors.TOOLTIP)));
                                     if(!((HelpfulNode) node.getNode()).getHelpText().equals("")) {
                                         usageMessage = ((HelpfulNode) node.getNode()).getHelpText();
                                     }
-                                } else {
+                                }/* else {
                                     helpMessage = helpMessage.hoverEvent(null);
-                                }
+                                }*/
+                                helpMessage.add(nodeMessage);
                             }
                             String[] possibleNodes = entry.getValue().replace('|', ' ').split(" ");
                             CommandNode<McmeCommandSender> node = parsedNode;
                             CommandNode<McmeCommandSender> lastNode = parsedNode;
                             for(String possibleNode: possibleNodes) {
 //Logger.getLogger(ModerationPluginCommandBungee.class.getSimpleName()).info("possible node "+possibleNode);
-                                helpMessage = helpMessage.append(Component.text(" "+possibleNode));
                                 CommandNode<McmeCommandSender> temp = node;
                                 node = findDirectChild(node, possibleNode.replaceAll("[()\\[\\]<>]",""));
                                 if(node==null) {
@@ -108,35 +101,39 @@ public class ModerationPluginCommand {
                                     lastNode = temp;
                                 }
 //Logger.getGlobal().info("possible Node:");
-//printTree(node);
-                                helpMessage = helpMessage.color((node instanceof LiteralCommandNode?Style.LITERAL:Style.ARGUMENT));
+                                Message nodeMessage = McmeModeration.getPlugin().createMessage().add(" "+possibleNode,
+                                                (node instanceof LiteralCommandNode?McmeColors.LITERAL:McmeColors.ARGUMENT));
                                 if ((node instanceof HelpfulNode)) {
-                                    helpMessage = helpMessage.hoverEvent(HoverEvent
-                                            .showText(Component.text(((HelpfulNode) node).getTooltip()).color(Style.TOOLTIP)));
+                                    nodeMessage.addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                                            McmeModeration.getPlugin().createMessage()
+                                                    .add(((HelpfulNode) node).getTooltip(), McmeColors.TOOLTIP)));
                                     if(!((HelpfulNode) node).getHelpText().equals("")) {
                                         usageMessage = ((HelpfulNode) node).getHelpText();
                                     }
-                                } else {
+                                }/* else {
                                     helpMessage = helpMessage.hoverEvent(null);
-                                }
+                                }*/
+                                helpMessage.add(nodeMessage);
                             }
                             if(!usageMessage.equals("")) {
-                                helpMessage = helpMessage.append(Component.text(" : "+usageMessage).color(Style.HELP))
-                                       .hoverEvent(HoverEvent.showText(Component.text(" ")));
+                                Message hoverMessage = McmeModeration.getPlugin().createMessage()
+                                        .add(" : "+usageMessage, McmeColors.HELP)
+                                        .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                                                                        McmeModeration.getPlugin().createMessage()
+                                                                        .add(" ", McmeColors.TOOLTIP)));
+                                helpMessage.add(hoverMessage);
                             }
                         }
                     }
-                    sender.sendInfo(helpMessage);
+                    sender.sendMessage(helpMessage);
                 } else if(result.getContext().getCommand() == null) {
-                    sender.sendError(Component.text("Invalid command. Maybe you don't have permission.")
-                            .color(NamedTextColor.RED));
+                    sender.sendMessage(McmeModeration.errorMessage().add("Invalid command. Maybe you don't have permission."));
                 } else {
                     commandDispatcher.execute(result);
                 }
             }
         } catch (CommandSyntaxException e) {
-            sender.sendError(Component.text("Internal command parser exception!")
-                    .color(NamedTextColor.RED));
+            sender.sendMessage(McmeModeration.errorMessage().add("Internal command parser exception!"));
         }
     }
 

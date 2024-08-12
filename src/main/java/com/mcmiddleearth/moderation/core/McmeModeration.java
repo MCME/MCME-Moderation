@@ -1,8 +1,10 @@
 package com.mcmiddleearth.moderation.core;
 
+import com.mcmiddleearth.base.core.message.McmeColors;
+import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.core.plugin.McmeProxyPlugin;
+import com.mcmiddleearth.base.core.server.McmeProxy;
 import com.mcmiddleearth.moderation.core.watchlist.WatchlistManager;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
 
 public class McmeModeration {
 
@@ -25,6 +27,10 @@ public class McmeModeration {
         return plugin;
     }
 
+    public static McmeProxy getProxy() {
+        return plugin.getMcmeProxy();
+    }
+
     public static WatchlistManager getWatchlistManager() {
         return watchlistManager;
     }
@@ -33,8 +39,22 @@ public class McmeModeration {
         return config;
     }
 
-    public static Component getMessagePrefix() {
-        return Component.text("[Mod]").color(Style.MOD);
+    public static Message getMessagePrefix() {
+        return plugin.createMessage().add("[Mod] ", McmeColors.MOD);
     }
 
+    public static Message infoMessage() {
+        return getPlugin().createInfoMessage();
+    }
+
+    public static  Message errorMessage() {
+        return getPlugin().createErrorMessage();
+    }
+    public static Message infoMessage(String message) {
+        return getPlugin().createInfoMessage().add(message);
+    }
+
+    public static  Message errorMessage(String message) {
+        return getPlugin().createErrorMessage().add(message);
+    }
 }
