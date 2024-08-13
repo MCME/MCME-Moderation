@@ -2,7 +2,6 @@ package com.mcmiddleearth.moderation.bungee.command;
 
 import com.mcmiddleearth.base.bungee.command.BungeeMcmeCommandSender;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
-import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.command.ModerationPluginCommand;
 import com.mcmiddleearth.moderation.core.command.handler.AbstractCommandHandler;
 import com.mojang.brigadier.CommandDispatcher;

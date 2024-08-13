@@ -2,6 +2,7 @@ package com.mcmiddleearth.moderation.core.command;
 
 import com.google.common.base.Joiner;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.logger.McmeLogger;
 import com.mcmiddleearth.base.core.message.McmeColors;
 import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.core.message.MessageHoverEvent;
@@ -18,8 +19,6 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ModerationPluginCommand {
 
@@ -145,7 +144,7 @@ public class ModerationPluginCommand {
             }
             return commandDispatcher.getCompletionSuggestions(result).get().getList().stream().map(Suggestion::getText).toList();
         } catch (InterruptedException | ExecutionException e) {
-            Logger.getLogger(ModerationPluginBungee.class.getSimpleName()).log(Level.WARNING,"Command tab complete error.",e);
+            McmeModeration.getPlugin().getMcmeLogger().error("Command tab complete error.",e);
         }
         return Collections.emptyList();
     }
@@ -166,7 +165,7 @@ public class ModerationPluginCommand {
     }
 
     private void printTree(CommandNode<McmeCommandSender> node) {
-        Logger log = Logger.getLogger(ModerationPluginBungee.class.getSimpleName());
+        McmeLogger log = McmeModeration.getPlugin().getMcmeLogger();
         log.info(printNode(node, "", "  "));
     }
 
