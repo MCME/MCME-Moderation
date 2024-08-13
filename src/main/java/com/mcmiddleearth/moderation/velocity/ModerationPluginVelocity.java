@@ -2,6 +2,7 @@ package com.mcmiddleearth.moderation.velocity;
 
 import com.google.inject.Inject;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.message.McmeColors;
 import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.velocity.AbstractVelocityPlugin;
 import com.mcmiddleearth.moderation.core.McmeModeration;
@@ -66,6 +67,9 @@ public class ModerationPluginVelocity extends AbstractVelocityPlugin {
 
     @Override
     public Message getMessagePrefix() {
-        return McmeModeration.getMessagePrefix();
+        return createMessage().add("[Mod] ", McmeColors.MOD);
     }
+
+
+
 }

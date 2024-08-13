@@ -6,7 +6,6 @@ import com.mcmiddleearth.base.core.logger.McmeLogger;
 import com.mcmiddleearth.base.core.message.McmeColors;
 import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.core.message.MessageHoverEvent;
-import com.mcmiddleearth.moderation.bungee.ModerationPluginBungee;
 import com.mcmiddleearth.moderation.core.McmeModeration;
 import com.mcmiddleearth.moderation.core.command.node.HelpfulNode;
 import com.mojang.brigadier.CommandDispatcher;
@@ -19,6 +18,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 
 public class ModerationPluginCommand {
 
@@ -116,10 +116,10 @@ public class ModerationPluginCommand {
                             }
                             if(!usageMessage.equals("")) {
                                 Message hoverMessage = McmeModeration.getPlugin().createMessage()
-                                        .add(" : "+usageMessage, McmeColors.HELP)
-                                        .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
+                                        .add(" : "+usageMessage, McmeColors.HELP);
+                                        /*.addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
                                                                         McmeModeration.getPlugin().createMessage()
-                                                                        .add(" ", McmeColors.TOOLTIP)));
+                                                                        .add(usageTooltip, McmeColors.TOOLTIP)));*/
                                 helpMessage.add(hoverMessage);
                             }
                         }

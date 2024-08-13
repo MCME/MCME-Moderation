@@ -18,6 +18,7 @@ package com.mcmiddleearth.moderation.bungee;
 
 import com.mcmiddleearth.base.bungee.AbstractBungeePlugin;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
+import com.mcmiddleearth.base.core.message.McmeColors;
 import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
@@ -117,6 +118,6 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
 
     @Override
     public Message getMessagePrefix() {
-        return McmeModeration.getMessagePrefix();
+        return createMessage().add("[Mod] ", McmeColors.MOD);
     }
 }

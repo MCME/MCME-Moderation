@@ -54,11 +54,13 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                 .withTooltip("Manage list of players who are being watched for possible moderation action.")
                 .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(permission))
 
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new KnownPlayerArgumentType())
+                .then(HelpfulLiteralBuilder.literal("details")
                     .withHelpText("Watchlist details about a player.")
-                    .withTooltip("Name of player to see details about.")
+                    .withTooltip("See all reported reasons for a player together with report dates.")
                     .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.SEE_WATCHLIST))
-                    .executes(context -> viewDetails(context.getSource(), context.getArgument("player",String.class))))
+                    .then(HelpfulRequiredArgumentBuilder.argument("player", new KnownPlayerArgumentType())
+                        .withTooltip("Name of player to see details about.")
+                        .executes(context -> viewDetails(context.getSource(), context.getArgument("player",String.class)))))
 
                 .then(HelpfulLiteralBuilder.literal("list")
                     .withHelpText("See players on watchlist")
@@ -78,7 +80,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                         .executes(context -> viewList(context.getSource(), context.getArgument("selection", String.class), 1))
 
                         .then(HelpfulRequiredArgumentBuilder.argument(("page"),
-                                         new PageArgumentType(context -> getWatchlistSelection((String) context.getArgument("selection",String.class))
+                                         new PageArgumentType(context -> getWatchlistSelection( (String) context.getArgument("selection", String.class))
                                                                                             .stream().map(Map.Entry::getKey).collect(Collectors.toList())))
                             .executes(context -> viewList(context.getSource(), context.getArgument("selection", String.class),
                                                                                context.getArgument("page", Integer.class))))))
@@ -105,7 +107,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                                 .executes(context -> removePlayer(context.getSource(),context.getArgument("player",String.class)))
 
                                 .then(HelpfulRequiredArgumentBuilder.argument("reason",integer(1))
-                                    .withTooltip("No. of Reason to remove.")
+                                    .withTooltip("Number of Reason to remove.")
                                     .executes(context -> removeReason(context.getSource(),context.getArgument("player",String.class),
                                                                                           context.getArgument("reason",Integer.class)))))));
     }
@@ -160,7 +162,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         }
         message.add(" (page ");
         if(page > 1) {
-            Message clickMessage = McmeModeration.infoMessage().add("<", McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
+            Message clickMessage = McmeModeration.message("<", McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
                    .addClick(new MessageClickEvent(MessageClickEvent.Action.RUN_COMMAND,
                                                    "/watchlist list " + (page - 1)))
                    .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
@@ -169,7 +171,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
         }
         message = message.add(""+page, MessageDecoration.BOLD);
         if(page < maxPage) {
-            Message clickMessage = McmeModeration.infoMessage().add(">",McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
+            Message clickMessage = McmeModeration.message(">",McmeColors.INFO_STRESSED, MessageDecoration.BOLD)
                     .addClick(new MessageClickEvent(MessageClickEvent.Action.RUN_COMMAND,
                                             "/watchlist list " + (page + 1)))
                     .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
@@ -191,13 +193,13 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                     color = McmeColors.WARNING;
                 }
                 message.add("\n- ");
-                Message clickMessage = McmeModeration.infoMessage().add(name,color)
+                Message clickMessage = McmeModeration.message(name,color)
+                        .add(" "+(uuid!=null?uuid.toString():"unknown UUID"))
                         .addClick(new MessageClickEvent(MessageClickEvent.Action.RUN_COMMAND,
-                                                        "/watchlist " + displayList.get(i).getKey()))
+                                                        "/watchlist details " + displayList.get(i).getKey()))
                         .addHover(new MessageHoverEvent(MessageHoverEvent.Action.TEXT,
                                 McmeModeration.getPlugin().createMessage().add("Click for details.",McmeColors.TOOLTIP)));
                 message.add(clickMessage);
-                message.add(" "+(uuid!=null?uuid.toString():"unknown UUID"));
             }
         } else {
             message = message.add("\n- no Players - ");
