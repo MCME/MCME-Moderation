@@ -20,8 +20,6 @@ import com.mcmiddleearth.base.bungee.AbstractBungeePlugin;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.base.core.message.McmeColors;
 import com.mcmiddleearth.base.core.message.Message;
-import com.mcmiddleearth.base.net.kyori.adventure.platform.bungeecord.BungeeAudiences;
-import com.mcmiddleearth.base.net.kyori.adventure.text.Component;
 import com.mcmiddleearth.moderation.bungee.command.ModerationPluginCommandBungee;
 import com.mcmiddleearth.moderation.bungee.listener.WatchlistListener;
 import com.mcmiddleearth.moderation.core.McmeModeration;
@@ -30,8 +28,8 @@ import com.mcmiddleearth.moderation.core.Permission;
 import com.mcmiddleearth.moderation.core.command.handler.ReportCommandHandler;
 import com.mcmiddleearth.moderation.core.command.handler.WatchlistCommandHandler;
 import com.mojang.brigadier.CommandDispatcher;
+import net.kyori.adventure.platform.bungeecord.BungeeAudiences;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.TabCompleteEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -39,7 +37,6 @@ import net.md_5.bungee.event.EventHandler;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  *
@@ -51,17 +48,18 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
     
     BungeeAudiences adventure = null;
 
-    private final CommandDispatcher<McmeCommandSender> commandDispatcher = new CommandDispatcher<>();
     private final Set<ModerationPluginCommandBungee> commands = new HashSet<>();
 
     @Override
     public void onEnable() {
-        //todo: replace adventure by Base plugin adventure
-        adventure = BungeeAudiences.create(this);
+        super.onEnable();
+
         File configFile = new File(getDataFolder(), McmeModerationConfig.FILE_NAME);
         saveResourceToFile(McmeModerationConfig.FILE_NAME, configFile);
 
         McmeModeration.enable(this);
+
+        CommandDispatcher<McmeCommandSender> commandDispatcher = new CommandDispatcher<>();
 
         commands.add(new ModerationPluginCommandBungee(commandDispatcher,
                 new WatchlistCommandHandler("watchlist", Permission.WATCHLIST, commandDispatcher)));
@@ -74,16 +72,15 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
         //Listener for tab complete
         ProxyServer.getInstance().getPluginManager().registerListener(this,this);
         ProxyServer.getInstance().getPluginManager().registerListener(this, new WatchlistListener());
-        Logger.getGlobal().info("Enabled Moderation plugin! sent to global logger.");
-        adventure.console().sendMessage(Component.text("Enabled Moderation plugin! Sent to audience.console"));
+
+        adventure = getAdventure();
+
         getMcmeProxy().getConsole().sendMessage(createInfoMessage().add("Enabled on Bungee proxy!"));
     }
 
     @Override
     public void onDisable() {
-        //maybe TODO: e.g. cancel scheduled tasks.
         McmeModeration.disable();
-        adventure.close();
     }
 
     @SuppressWarnings("unused")
@@ -108,13 +105,13 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
         recipient.sendMessage(result.create());
     }*/
 
-    public boolean isOnWatchlist(ProxiedPlayer player) {
+    /*public boolean isOnWatchlist(ProxiedPlayer player) {
         return McmeModeration.getWatchlistManager().isOnWatchlist(player.getName());
     }
 
     public String getTablistPrefix() {
         return McmeModeration.getConfig().getWatchlistTablistPrefix();
-    }
+    }*/
 
     @Override
     public Message getMessagePrefix() {

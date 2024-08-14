@@ -1,6 +1,5 @@
 package com.mcmiddleearth.moderation.core;
 
-import com.mcmiddleearth.base.core.message.McmeColors;
 import com.mcmiddleearth.base.core.message.Message;
 import com.mcmiddleearth.base.core.message.MessageColor;
 import com.mcmiddleearth.base.core.message.MessageDecoration;
