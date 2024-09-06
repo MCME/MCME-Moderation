@@ -16,6 +16,7 @@
  */
 package com.mcmiddleearth.moderation.core.command.argument;
 
+import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -38,9 +39,9 @@ public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgument
 
     private String tooltip = "Number of page you want to see.";
 
-    private final Function<CommandContext, Collection<String>> listProvider;
+    private final Function<CommandContext<McmeCommandSender>, Collection<String>> listProvider;
 
-    public PageArgumentType(Function<CommandContext, Collection<String>> listProvider) {
+    public PageArgumentType(Function<CommandContext<McmeCommandSender>, Collection<String>> listProvider) {
         this.listProvider = listProvider;
     }
 
@@ -62,9 +63,10 @@ public class PageArgumentType implements ArgumentType<Integer>,  HelpfulArgument
         return Arrays.asList(new String[]{"1","2","3"}.clone());
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        int maxPage = listProvider.apply(context).size() / 10 +1;
+        int maxPage = listProvider.apply((CommandContext<McmeCommandSender>) context).size() / 10 +1;
         for (int i = 1; i <= maxPage; i++) {
             if ((""+i).toLowerCase().startsWith(builder.getRemaining().toLowerCase())) {
                 if(tooltip == null) {

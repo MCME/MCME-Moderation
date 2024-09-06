@@ -80,14 +80,14 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                         .executes(context -> viewList(context.getSource(), context.getArgument("selection", String.class), 1))
 
                         .then(HelpfulRequiredArgumentBuilder.argument(("page"),
-                                         new PageArgumentType(context -> getWatchlistSelection( (String) context.getArgument("selection", String.class))
+                                         new PageArgumentType(context -> getWatchlistSelection(context.getArgument("selection", String.class))
                                                                                             .stream().map(Map.Entry::getKey).collect(Collectors.toList())))
                             .executes(context -> viewList(context.getSource(), context.getArgument("selection", String.class),
                                                                                context.getArgument("page", Integer.class))))))
 
                 .then(HelpfulLiteralBuilder.literal("add")
                         .withHelpText("Add a player to watchlist")
-                        .withTooltip("Add a player to watchlist and give a reason why he should be watched. You can also add more reasons to a player already on the list.")
+                        .withTooltip("Add a player to watchlist and give a reason why they should be watched. You can also add more reasons to a player already on the list.")
                         .requires(ModerationCommandSender -> ModerationCommandSender.hasPermission(Permission.ADD_WATCHLIST))
 
                         .then(HelpfulRequiredArgumentBuilder.argument("player", new OfflinePlayerArgumentType())
@@ -272,7 +272,7 @@ public class WatchlistCommandHandler extends AbstractCommandHandler {
                     McmeModeration.getWatchlistManager().removeWatchlist(player);
                     commandSender.sendMessage(McmeModeration.infoMessage("Removed ")
                                                     .add(player, McmeColors.INFO_STRESSED)
-                                                    .add(" from watchlist as you removed the last reason for him to be there."));
+                                                    .add(" from watchlist as you removed the last reason for them to be there."));
                 }
             }
         } else {
