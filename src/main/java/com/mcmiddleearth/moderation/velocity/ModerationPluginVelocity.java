@@ -37,8 +37,8 @@ public class ModerationPluginVelocity extends AbstractVelocityPlugin {
         super(logger, server, dataDirectory);
     }
 
-    @Subscribe
-    public void onProxyInitialization(ProxyInitializeEvent event) {
+    @Override
+    public void enable() {
         File configFile = new File(getDataFolder(), McmeModerationConfig.FILE_NAME);
         saveResourceToFile(McmeModerationConfig.FILE_NAME, configFile);
 
@@ -68,8 +68,8 @@ public class ModerationPluginVelocity extends AbstractVelocityPlugin {
         getMcmeProxy().getConsole().sendMessage(createInfoMessage().add("Enabled on Velocity proxy!"));
     }
 
-    @Subscribe
-    public void onProxyShutdown(ProxyShutdownEvent event) {
+    @Override
+    public void disable() {
         McmeModeration.disable();
     }
 

@@ -1,6 +1,7 @@
 package com.mcmiddleearth.moderation.bungee.command;
 
 import com.mcmiddleearth.base.bungee.command.BungeeMcmeCommandSender;
+import com.mcmiddleearth.base.bungee.server.BungeeMcmeProxy;
 import com.mcmiddleearth.base.core.command.McmeCommandSender;
 import com.mcmiddleearth.moderation.core.command.ModerationPluginCommand;
 import com.mcmiddleearth.moderation.core.command.handler.AbstractCommandHandler;
@@ -25,7 +26,7 @@ public class ModerationPluginCommandBungee extends Command {
 
     @Override
     public void execute(CommandSender commandSender, String[] args) {
-        moderationCommand.execute(new BungeeMcmeCommandSender(commandSender),getName(), args);
+        moderationCommand.execute(BungeeMcmeProxy.getMcmeCommandSender(commandSender),getName(), args);
     }
 
     @Override
@@ -35,7 +36,7 @@ public class ModerationPluginCommandBungee extends Command {
 
     public void onTabComplete(TabCompleteEvent event) {
         if (event.getSender() instanceof CommandSender commandSender) {
-            McmeCommandSender sender = new BungeeMcmeCommandSender(commandSender);
+            McmeCommandSender sender = BungeeMcmeProxy.getMcmeCommandSender(commandSender);
             List<String> suggestions = moderationCommand.getSuggestions(sender, event.getCursor().substring(1));
             if (suggestions.isEmpty()) {
                 event.setCancelled(true);

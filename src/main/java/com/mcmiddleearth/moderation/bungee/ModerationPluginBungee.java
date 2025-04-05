@@ -51,9 +51,7 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
     private final Set<ModerationPluginCommandBungee> commands = new HashSet<>();
 
     @Override
-    public void onEnable() {
-        super.onEnable();
-
+    public void enable() {
         File configFile = new File(getDataFolder(), McmeModerationConfig.FILE_NAME);
         saveResourceToFile(McmeModerationConfig.FILE_NAME, configFile);
 
@@ -79,7 +77,7 @@ public class ModerationPluginBungee extends AbstractBungeePlugin implements List
     }
 
     @Override
-    public void onDisable() {
+    public void disable() {
         McmeModeration.disable();
     }
 

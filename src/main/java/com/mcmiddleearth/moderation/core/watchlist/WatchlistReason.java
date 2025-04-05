@@ -18,6 +18,7 @@ package com.mcmiddleearth.moderation.core.watchlist;
 
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
@@ -62,9 +63,16 @@ public class WatchlistReason {
      * @throws ParseException thrown when date in watchlist.yml is not readable
      */
     public WatchlistReason(Map<String,Object> data) throws ParseException {
-        this(DateFormat.getDateTimeInstance(DateFormat.DEFAULT,DateFormat.DEFAULT,Locale.US).parse((String) data.get("creationTime")),
+        this(
+                new SimpleDateFormat("MMM d, yyyy, hh:mm:ss a", Locale.US).parse((String)data.get("creationTime")),
+                (String) data.get("description"),
+                (String) data.get("initiator"),
+                (String) data.get("nameAtCreationTime"),
+                (boolean) data.get("byModerator")
+        );
+        /*this(DateFormat.getDateTimeInstance(DateFormat.DEFAULT,DateFormat.DEFAULT,Locale.US).parse((String) data.get("creationTime")),
                 (String) data.get("description"), (String) data.get("initiator"), (String) data.get("nameAtCreationTime"),
-                (boolean) data.get("byModerator"));
+                (boolean) data.get("byModerator"));*/
     }
 
     public Date getCreationTime() {
@@ -91,7 +99,7 @@ public class WatchlistReason {
      */
     public Map<String,Object> serialize() {
         Map<String,Object> result = new HashMap<>();
-        result.put("creationTime", DateFormat.getDateTimeInstance(DateFormat.DEFAULT,DateFormat.DEFAULT,Locale.US).format(creationTime));
+        result.put("creationTime", new SimpleDateFormat("MMM d, yyyy, hh:mm:ss a", Locale.US).format(creationTime));
         result.put("description", description);
         result.put("initiator",initiator);
         result.put("nameAtCreationTime",nameAtCreationTime);
